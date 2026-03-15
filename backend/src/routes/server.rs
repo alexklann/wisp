@@ -1,9 +1,14 @@
-use axum::{Extension, Json, extract::State, http::StatusCode, response::IntoResponse};
+use axum::{
+    Extension, Json,
+    extract::{Path, State},
+    http::StatusCode,
+    response::IntoResponse,
+};
 use serde::Deserialize;
 use sqlx::SqlitePool;
 use uuid::Uuid;
 
-use crate::models::Server;
+use crate::models::{Channel, Server, ServerMember};
 
 #[derive(Deserialize)]
 pub struct CreateServerRequestBody {
@@ -65,4 +70,81 @@ pub async fn create_server(
         })?;
 
     Ok((StatusCode::CREATED, Json(server)))
+}
+
+#[derive(Deserialize)]
+pub struct CreateChannelRequestBody {
+    name: String,
+}
+
+pub async fn create_channel(
+    State(pool): State<SqlitePool>,
+    Extension(user_id): Extension<String>,
+    Path(server_id): Path<String>,
+    Json(payload): Json<CreateChannelRequestBody>,
+) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
+    if payload.name.is_empty() || server_id.is_empty() {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({ "error": "invalid input" })),
+        ));
+    }
+
+    let server_member = sqlx::query_as::<_, ServerMember>(
+        "SELECT * FROM server_members WHERE user_id = ? AND server_id = ?",
+    )
+    .bind(&user_id)
+    .bind(&server_id)
+    .fetch_one(&pool)
+    .await
+    .map_err(|e| match e {
+        sqlx::Error::RowNotFound => (
+            StatusCode::FORBIDDEN,
+            Json(serde_json::json!({ "error": "insufficient permissions" })),
+        ),
+        _ => {
+            eprintln!("Error selecting server_member: {:?}", e);
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({ "error": "internal server error" })),
+            )
+        }
+    })?;
+
+    if server_member.role == "member" {
+        return Err((
+            StatusCode::FORBIDDEN,
+            Json(serde_json::json!({ "error": "insufficient permissions" })),
+        ));
+    }
+
+    let channel_id = Uuid::new_v4().to_string();
+
+    sqlx::query("INSERT INTO channels (id, name, server_id) VALUES (?, ?, ?)")
+        .bind(&channel_id)
+        .bind(&payload.name)
+        .bind(&server_id)
+        .execute(&pool)
+        .await
+        .map_err(|e| {
+            eprintln!("Error creating user: {:?}", e);
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({ "error": "internal server error" })),
+            )
+        })?;
+
+    let channel = sqlx::query_as::<_, Channel>("SELECT * FROM channels WHERE id = ?")
+        .bind(&channel_id)
+        .fetch_one(&pool)
+        .await
+        .map_err(|e| {
+            eprintln!("Error selecting server: {:?}", e);
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({ "error": "internal server error" })),
+            )
+        })?;
+
+    Ok((StatusCode::CREATED, Json(channel)))
 }

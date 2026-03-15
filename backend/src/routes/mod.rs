@@ -72,6 +72,7 @@ pub fn router() -> Router<SqlitePool> {
 
     let protected = Router::new()
         .route("/server", post(server::create_server))
+        .route("/server/:server_id/channels", post(server::create_channel))
         .route_layer(axum::middleware::from_fn(auth_middleware));
 
     Router::new().merge(public).merge(protected)
