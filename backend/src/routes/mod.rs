@@ -1,3 +1,4 @@
+mod login;
 mod register;
 
 use anyhow::Result;
@@ -30,5 +31,7 @@ pub fn generate_token(user: &User) -> Result<String> {
 }
 
 pub fn router() -> Router<SqlitePool> {
-    Router::new().route("/register", post(register::register))
+    Router::new()
+        .route("/register", post(register::register))
+        .route("/login", post(login::login))
 }
