@@ -1,11 +1,9 @@
 use crate::{models::User, routes::generate_token};
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use bcrypt::{DEFAULT_COST, hash};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::{
-    SqlitePool,
-    types::chrono::{DateTime, Utc},
-};
+use sqlx::SqlitePool;
 use uuid::Uuid;
 
 #[derive(Deserialize)]

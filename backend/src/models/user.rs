@@ -1,4 +1,4 @@
-use sqlx::types::chrono::{DateTime, Utc};
+use chrono::{DateTime, Utc};
 
 #[derive(sqlx::FromRow)]
 pub struct User {
