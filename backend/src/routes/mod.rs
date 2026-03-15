@@ -71,8 +71,14 @@ pub fn router() -> Router<SqlitePool> {
         .route("/ws", get(ws::ws_handler));
 
     let protected = Router::new()
-        .route("/server", post(server::create_server))
-        .route("/server/:server_id/channels", post(server::create_channel))
+        .route("/servers", post(server::create_server))
+        .route("/servers", get(server::get_servers))
+        .route("/servers/{server_id}", get(server::get_server))
+        .route(
+            "/servers/{server_id}/channels",
+            post(server::create_channel),
+        )
+        .route("/servers/{server_id}/channels", get(server::get_channels))
         .route_layer(axum::middleware::from_fn(auth_middleware));
 
     Router::new().merge(public).merge(protected)
