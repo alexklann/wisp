@@ -8,10 +8,7 @@ use serde::Deserialize;
 use sqlx::SqlitePool;
 use uuid::Uuid;
 
-use crate::{
-    models::{Channel, Server, ServerMember},
-    routes::server,
-};
+use crate::models::{Channel, Server, ServerMember};
 
 #[derive(Deserialize)]
 pub struct CreateServerRequestBody {
@@ -100,7 +97,7 @@ pub async fn get_server(
     Extension(user_id): Extension<String>,
     Path(server_id): Path<String>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
-    let _ = sqlx::query_as::<_, ServerMember>(
+    sqlx::query_as::<_, ServerMember>(
         "SELECT * FROM server_members WHERE user_id = ? AND server_id = ?",
     )
     .bind(&user_id)
@@ -223,7 +220,7 @@ pub async fn get_channels(
     Extension(user_id): Extension<String>,
     Path(server_id): Path<String>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
-    let _ = sqlx::query_as::<_, ServerMember>(
+    sqlx::query_as::<_, ServerMember>(
         "SELECT * FROM server_members WHERE user_id = ? AND server_id = ?",
     )
     .bind(&user_id)

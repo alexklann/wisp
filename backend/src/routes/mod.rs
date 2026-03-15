@@ -1,3 +1,4 @@
+mod channel;
 mod login;
 mod register;
 mod server;
@@ -79,6 +80,10 @@ pub fn router() -> Router<SqlitePool> {
             post(server::create_channel),
         )
         .route("/servers/{server_id}/channels", get(server::get_channels))
+        .route(
+            "/channels/{channel_id}/messages",
+            get(channel::get_messages),
+        )
         .route_layer(axum::middleware::from_fn(auth_middleware));
 
     Router::new().merge(public).merge(protected)

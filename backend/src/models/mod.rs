@@ -1,8 +1,10 @@
 mod channel;
+mod message;
 mod server;
 mod server_member;
 mod user;
 pub use channel::Channel;
+pub use message::Message;
 pub use server::Server;
 pub use server_member::ServerMember;
 pub use user::User;
