@@ -13,7 +13,11 @@ use jsonwebtoken::{DecodingKey, Validation, decode};
 use serde::Deserialize;
 use shared::ClientEvent;
 
-use crate::{AppState, ChatMessage, routes::Claims};
+use crate::{
+    AppState, ChatMessage,
+    models::{Channel, ServerMember},
+    routes::Claims,
+};
 
 #[derive(Deserialize)]
 pub struct WsQuery {
@@ -47,6 +51,7 @@ pub async fn handle_event(
     sender: &mut SplitSink<WebSocket, Message>,
     user_id: &str,
     app_state: &Arc<AppState>,
+    current_channel: &mut Option<String>,
 ) {
     match event {
         ClientEvent::Ping => {
@@ -81,8 +86,55 @@ pub async fn handle_event(
             }
         }
         ClientEvent::JoinChannel { channel_id } => {
-            println!("User {} joining room: {}", user_id, channel_id);
-            todo!()
+            let channel = match sqlx::query_as::<_, Channel>("SELECT * FROM channels WHERE id = ?")
+                .bind(&channel_id)
+                .fetch_one(&app_state.pool)
+                .await
+            {
+                Ok(channel) => channel,
+                Err(sqlx::Error::RowNotFound) => {
+                    eprintln!("Channel {} not found", channel_id);
+                    return;
+                }
+                Err(e) => {
+                    eprintln!("DB error: {:?}", e);
+                    return;
+                }
+            };
+
+            match sqlx::query_as::<_, ServerMember>(
+                "SELECT * FROM server_members WHERE user_id = ? AND server_id = ?",
+            )
+            .bind(user_id)
+            .bind(&channel.server_id)
+            .fetch_one(&app_state.pool)
+            .await
+            {
+                Ok(_) => {}
+                Err(sqlx::Error::RowNotFound) => {
+                    eprintln!(
+                        "User {} is not a member of server {}",
+                        user_id, channel.server_id
+                    );
+                    return;
+                }
+                Err(e) => {
+                    eprintln!("DB error: {:?}", e);
+                    return;
+                }
+            }
+
+            println!("User {} joining room: {}", user_id, &channel_id);
+
+            let _ = sender
+                .send(Message::Text(
+                    serde_json::json!({ "type": "joined_channel", "channel_id": &channel_id })
+                        .to_string()
+                        .into(),
+                ))
+                .await;
+
+            *current_channel = Some(channel_id);
         }
     }
 }
@@ -95,12 +147,14 @@ pub async fn handle_socket(socket: WebSocket, app_state: Arc<AppState>, user_id:
 
     app_state.user_set.lock().await.insert(user_id.clone());
 
+    let mut current_channel: Option<String> = None;
+
     loop {
         tokio::select! {
             msg = receiver.next() => {
                 if let Some(Ok(Message::Text(text))) = msg {
                     match serde_json::from_str::<ClientEvent>(&text) {
-                        Ok(event) => handle_event(event, &mut sender, &user_id, &app_state).await,
+                        Ok(event) => handle_event(event, &mut sender, &user_id, &app_state, &mut current_channel).await,
                         Err(e) => {
                             eprintln!("Invalid JSON: {}", e);
                         }
@@ -111,9 +165,11 @@ pub async fn handle_socket(socket: WebSocket, app_state: Arc<AppState>, user_id:
             }
 
             Ok(chat_msg) = rx.recv() => {
-                let json = serde_json::to_string(&chat_msg).unwrap();
-                if sender.send(Message::Text(json.into())).await.is_err() {
-                    break; // client disconnected
+                if Some(&chat_msg.channel_id) == current_channel.as_ref() {
+                    let json = serde_json::to_string(&chat_msg).unwrap();
+                    if sender.send(Message::Text(json.into())).await.is_err() {
+                        break;
+                    }
                 }
             }
         }
