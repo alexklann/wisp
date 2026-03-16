@@ -1,8 +1,27 @@
+use std::{collections::HashSet, sync::Arc};
+
+use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
-use tokio;
+use tokio::{
+    self,
+    sync::{Mutex, broadcast},
+};
 
 mod models;
 mod routes;
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct ChatMessage {
+    pub channel_id: String,
+    pub sender_id: String,
+    pub content: String,
+}
+
+struct AppState {
+    user_set: Arc<Mutex<HashSet<String>>>,
+    pool: SqlitePool,
+    tx: broadcast::Sender<ChatMessage>,
+}
 
 #[tokio::main]
 async fn main() {
@@ -13,7 +32,12 @@ async fn main() {
         .await
         .expect("Failed to connect to database");
 
-    let app = routes::router().with_state(pool);
+    let user_set = Arc::new(Mutex::new(HashSet::new()));
+    let (tx, _rx) = broadcast::channel(100);
+
+    let app_state = Arc::new(AppState { user_set, pool, tx });
+
+    let app = routes::router().with_state(app_state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();

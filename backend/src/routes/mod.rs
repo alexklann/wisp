@@ -4,6 +4,9 @@ mod register;
 mod server;
 mod ws;
 
+use std::sync::Arc;
+
+use crate::{AppState, models::User};
 use anyhow::Result;
 use axum::{
     Router,
@@ -15,9 +18,6 @@ use axum::{
 };
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use serde::{Deserialize, Serialize};
-use sqlx::SqlitePool;
-
-use crate::models::User;
 
 #[derive(Serialize, Deserialize)]
 pub struct Claims {
@@ -65,7 +65,7 @@ pub async fn auth_middleware(mut req: Request, next: Next) -> Result<Response, S
     Ok(next.run(req).await)
 }
 
-pub fn router() -> Router<SqlitePool> {
+pub fn router() -> Router<Arc<AppState>> {
     let public = Router::new()
         .route("/register", post(register::register))
         .route("/login", post(login::login))

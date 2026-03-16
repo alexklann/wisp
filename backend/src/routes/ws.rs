@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use axum::{
     extract::{
         Query, State, WebSocketUpgrade,
@@ -6,12 +8,12 @@ use axum::{
     http::StatusCode,
     response::IntoResponse,
 };
+use futures::{SinkExt, StreamExt, stream::SplitSink};
 use jsonwebtoken::{DecodingKey, Validation, decode};
 use serde::Deserialize;
 use shared::ClientEvent;
-use sqlx::SqlitePool;
 
-use crate::routes::Claims;
+use crate::{AppState, ChatMessage, routes::Claims};
 
 #[derive(Deserialize)]
 pub struct WsQuery {
@@ -20,7 +22,7 @@ pub struct WsQuery {
 
 pub async fn ws_handler(
     ws: WebSocketUpgrade,
-    State(pool): State<SqlitePool>,
+    State(app_state): State<Arc<AppState>>,
     Query(query): Query<WsQuery>,
 ) -> impl IntoResponse {
     let decoded = decode::<Claims>(
@@ -37,36 +39,86 @@ pub async fn ws_handler(
         }
     };
 
-    ws.on_upgrade(move |socket| handle_socket(socket, pool, claims.sub))
+    ws.on_upgrade(move |socket| handle_socket(socket, app_state, claims.sub))
 }
 
-pub async fn handle_socket(mut socket: WebSocket, _pool: SqlitePool, user_id: String) {
+pub async fn handle_event(
+    event: ClientEvent,
+    sender: &mut SplitSink<WebSocket, Message>,
+    user_id: &str,
+    app_state: &Arc<AppState>,
+) {
+    match event {
+        ClientEvent::Ping => {
+            println!("Received ping from {}", user_id);
+            let _ = sender.send(Message::Text("Pong".into())).await;
+        }
+        ClientEvent::SendMessage {
+            channel_id,
+            content,
+        } => {
+            if let Err(e) = sqlx::query(
+                "INSERT INTO messages (channel_id, sender_id, content, message_type) VALUES (?, ?, ?, ?)"
+            )
+            .bind(&channel_id)
+            .bind(user_id)
+            .bind(&content)
+            .bind("text")
+            .execute(&app_state.pool)
+            .await
+            {
+                eprintln!("Error creating message: {:?}", e);
+                return;
+            }
+
+            if let Err(e) = app_state.tx.send(ChatMessage {
+                channel_id,
+                sender_id: user_id.to_string(),
+                content,
+            }) {
+                eprintln!("Error broadcasting message: {:?}", e);
+                return;
+            }
+        }
+        ClientEvent::JoinChannel { channel_id } => {
+            println!("User {} joining room: {}", user_id, channel_id);
+            todo!()
+        }
+    }
+}
+
+pub async fn handle_socket(socket: WebSocket, app_state: Arc<AppState>, user_id: String) {
     println!("User connected: {}", user_id);
 
-    while let Some(Ok(msg)) = socket.recv().await {
-        if let Message::Text(text) = msg {
-            match serde_json::from_str::<ClientEvent>(&text) {
-                Ok(event) => match event {
-                    ClientEvent::Ping { content } => {
-                        println!("Received ping with: {}", content);
-                        let _ = socket.send(Message::Text("Pong".into())).await;
+    let (mut sender, mut receiver) = socket.split();
+    let mut rx = app_state.tx.subscribe();
+
+    app_state.user_set.lock().await.insert(user_id.clone());
+
+    loop {
+        tokio::select! {
+            msg = receiver.next() => {
+                if let Some(Ok(Message::Text(text))) = msg {
+                    match serde_json::from_str::<ClientEvent>(&text) {
+                        Ok(event) => handle_event(event, &mut sender, &user_id, &app_state).await,
+                        Err(e) => {
+                            eprintln!("Invalid JSON: {}", e);
+                        }
                     }
-                    ClientEvent::SendMessage { room_id, content } => {
-                        println!("User: {} | Msg for {}: {}", user_id, room_id, content);
-                    }
-                    ClientEvent::JoinRoom { room_id } => {
-                        println!("User joining room: {}", room_id);
-                    }
-                },
-                Err(err) => {
-                    eprintln!("Invalid JSON format: {}", err);
-                    let _ = socket
-                        .send(Message::Text(format!("Error: {}", err).into()))
-                        .await;
+                } else {
+                    break;
+                }
+            }
+
+            Ok(chat_msg) = rx.recv() => {
+                let json = serde_json::to_string(&chat_msg).unwrap();
+                if sender.send(Message::Text(json.into())).await.is_err() {
+                    break; // client disconnected
                 }
             }
         }
     }
 
+    app_state.user_set.lock().await.remove(&user_id);
     println!("User disconnected: {}", user_id);
 }

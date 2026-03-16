@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use axum::{
     Extension, Json,
     extract::{Path, State},
@@ -5,10 +7,12 @@ use axum::{
     response::IntoResponse,
 };
 use serde::Deserialize;
-use sqlx::SqlitePool;
 use uuid::Uuid;
 
-use crate::models::{Channel, Server, ServerMember};
+use crate::{
+    AppState,
+    models::{Channel, Server, ServerMember},
+};
 
 #[derive(Deserialize)]
 pub struct CreateServerRequestBody {
@@ -16,7 +20,7 @@ pub struct CreateServerRequestBody {
 }
 
 pub async fn create_server(
-    State(pool): State<SqlitePool>,
+    State(app_state): State<Arc<AppState>>,
     Extension(user_id): Extension<String>,
     Json(payload): Json<CreateServerRequestBody>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
@@ -33,7 +37,7 @@ pub async fn create_server(
         .bind(&server_id)
         .bind(&payload.name)
         .bind(&user_id)
-        .execute(&pool)
+        .execute(&app_state.pool)
         .await
         .map_err(|e| {
             eprintln!("Error creating user: {:?}", e);
@@ -45,7 +49,7 @@ pub async fn create_server(
 
     let server = sqlx::query_as::<_, Server>("SELECT * FROM servers WHERE id = ?")
         .bind(&server_id)
-        .fetch_one(&pool)
+        .fetch_one(&app_state.pool)
         .await
         .map_err(|e| {
             eprintln!("Error selecting server: {:?}", e);
@@ -59,7 +63,7 @@ pub async fn create_server(
         .bind(&server_id)
         .bind(&user_id)
         .bind("owner")
-        .execute(&pool)
+        .execute(&app_state.pool)
         .await
         .map_err(|e| {
             eprintln!("Error creating server_member: {:?}", e);
@@ -73,13 +77,13 @@ pub async fn create_server(
 }
 
 pub async fn get_servers(
-    State(pool): State<SqlitePool>,
+    State(app_state): State<Arc<AppState>>,
     Extension(user_id): Extension<String>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
     let servers =
         sqlx::query_as::<_, ServerMember>("SELECT * FROM server_members WHERE user_id = ?")
             .bind(&user_id)
-            .fetch_all(&pool)
+            .fetch_all(&app_state.pool)
             .await
             .map_err(|e| {
                 eprintln!("Error selecting server_members: {:?}", e);
@@ -93,7 +97,7 @@ pub async fn get_servers(
 }
 
 pub async fn get_server(
-    State(pool): State<SqlitePool>,
+    State(app_state): State<Arc<AppState>>,
     Extension(user_id): Extension<String>,
     Path(server_id): Path<String>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
@@ -102,7 +106,7 @@ pub async fn get_server(
     )
     .bind(&user_id)
     .bind(&server_id)
-    .fetch_one(&pool)
+    .fetch_one(&app_state.pool)
     .await
     .map_err(|e| match e {
         sqlx::Error::RowNotFound => (
@@ -120,7 +124,7 @@ pub async fn get_server(
 
     let server = sqlx::query_as::<_, Server>("SELECT * FROM servers WHERE id = ?")
         .bind(&server_id)
-        .fetch_all(&pool)
+        .fetch_all(&app_state.pool)
         .await
         .map_err(|e| {
             eprintln!("Error selecting server: {:?}", e);
@@ -139,7 +143,7 @@ pub struct CreateChannelRequestBody {
 }
 
 pub async fn create_channel(
-    State(pool): State<SqlitePool>,
+    State(app_state): State<Arc<AppState>>,
     Extension(user_id): Extension<String>,
     Path(server_id): Path<String>,
     Json(payload): Json<CreateChannelRequestBody>,
@@ -161,7 +165,7 @@ pub async fn create_channel(
     )
     .bind(&user_id)
     .bind(&server_id)
-    .fetch_one(&pool)
+    .fetch_one(&app_state.pool)
     .await
     .map_err(|e| match e {
         sqlx::Error::RowNotFound => (
@@ -190,7 +194,7 @@ pub async fn create_channel(
         .bind(&channel_id)
         .bind(&payload.name)
         .bind(&server_id)
-        .execute(&pool)
+        .execute(&app_state.pool)
         .await
         .map_err(|e| {
             eprintln!("Error creating channel: {:?}", e);
@@ -202,7 +206,7 @@ pub async fn create_channel(
 
     let channel = sqlx::query_as::<_, Channel>("SELECT * FROM channels WHERE id = ?")
         .bind(&channel_id)
-        .fetch_one(&pool)
+        .fetch_one(&app_state.pool)
         .await
         .map_err(|e| {
             eprintln!("Error selecting channel: {:?}", e);
@@ -216,7 +220,7 @@ pub async fn create_channel(
 }
 
 pub async fn get_channels(
-    State(pool): State<SqlitePool>,
+    State(app_state): State<Arc<AppState>>,
     Extension(user_id): Extension<String>,
     Path(server_id): Path<String>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
@@ -225,7 +229,7 @@ pub async fn get_channels(
     )
     .bind(&user_id)
     .bind(&server_id)
-    .fetch_one(&pool)
+    .fetch_one(&app_state.pool)
     .await
     .map_err(|e| match e {
         sqlx::Error::RowNotFound => (
@@ -243,7 +247,7 @@ pub async fn get_channels(
 
     let channels = sqlx::query_as::<_, Channel>("SELECT * FROM channels WHERE server_id = ?")
         .bind(&server_id)
-        .fetch_all(&pool)
+        .fetch_all(&app_state.pool)
         .await
         .map_err(|e| {
             eprintln!("Error selecting server: {:?}", e);

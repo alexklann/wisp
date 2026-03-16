@@ -1,9 +1,10 @@
+use std::sync::Arc;
+
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use bcrypt::verify;
 use serde::{Deserialize, Serialize};
-use sqlx::SqlitePool;
 
-use crate::{models::User, routes::generate_token};
+use crate::{AppState, models::User, routes::generate_token};
 
 #[derive(Deserialize)]
 pub struct LoginRequestBody {
@@ -17,7 +18,7 @@ pub struct LoginResponseBody {
 }
 
 pub async fn login(
-    State(pool): State<SqlitePool>,
+    State(app_state): State<Arc<AppState>>,
     Json(payload): Json<LoginRequestBody>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
     if payload.username.is_empty() || payload.password.is_empty() {
@@ -29,7 +30,7 @@ pub async fn login(
 
     let user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE username = ?")
         .bind(&payload.username)
-        .fetch_one(&pool)
+        .fetch_one(&app_state.pool)
         .await
         .map_err(|e| {
             eprintln!("Error selecting user: {:?}", e);

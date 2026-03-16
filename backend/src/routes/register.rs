@@ -1,9 +1,10 @@
-use crate::{models::User, routes::generate_token};
+use std::sync::Arc;
+
+use crate::{AppState, models::User, routes::generate_token};
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use bcrypt::{DEFAULT_COST, hash};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::SqlitePool;
 use uuid::Uuid;
 
 #[derive(Deserialize)]
@@ -25,7 +26,7 @@ pub struct RegisterResponseBody {
 }
 
 pub async fn register(
-    State(pool): State<SqlitePool>,
+    State(app_state): State<Arc<AppState>>,
     Json(payload): Json<RegisterRequestBody>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
     if payload.username.is_empty() || payload.display_name.is_empty() || payload.password.len() < 8
@@ -52,7 +53,7 @@ pub async fn register(
     .bind(&payload.username)
     .bind(&payload.display_name)
     .bind(&hashed)
-    .execute(&pool)
+    .execute(&app_state.pool)
     .await
     .map_err(|e| {
         if let sqlx::Error::Database(db_err) = &e {
@@ -72,7 +73,7 @@ pub async fn register(
 
     let user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = ?")
         .bind(&user_id)
-        .fetch_one(&pool)
+        .fetch_one(&app_state.pool)
         .await
         .map_err(|e| {
             eprintln!("Error selecting user: {:?}", e);

@@ -1,21 +1,25 @@
+use std::sync::Arc;
+
 use axum::{
     Extension, Json,
     extract::{Path, State},
     http::StatusCode,
     response::IntoResponse,
 };
-use sqlx::SqlitePool;
 
-use crate::models::{Channel, Message, ServerMember};
+use crate::{
+    AppState,
+    models::{Channel, Message, ServerMember},
+};
 
 pub async fn get_messages(
-    State(pool): State<SqlitePool>,
+    State(app_state): State<Arc<AppState>>,
     Extension(user_id): Extension<String>,
     Path(channel_id): Path<String>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
     let channel = sqlx::query_as::<_, Channel>("SELECT * FROM channels WHERE id = ?")
         .bind(&channel_id)
-        .fetch_one(&pool)
+        .fetch_one(&app_state.pool)
         .await
         .map_err(|e| match e {
             sqlx::Error::RowNotFound => (
@@ -36,7 +40,7 @@ pub async fn get_messages(
     )
     .bind(&user_id)
     .bind(&channel.server_id)
-    .fetch_one(&pool)
+    .fetch_one(&app_state.pool)
     .await
     .map_err(|e| match e {
         sqlx::Error::RowNotFound => (
@@ -54,7 +58,7 @@ pub async fn get_messages(
 
     let messages = sqlx::query_as::<_, Message>("SELECT * FROM messages WHERE channel_id = ?")
         .bind(&channel_id)
-        .fetch_all(&pool)
+        .fetch_all(&app_state.pool)
         .await
         .map_err(|e| {
             eprintln!("Error selecting server: {:?}", e);
