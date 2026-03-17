@@ -137,6 +137,69 @@ pub async fn get_server(
     Ok((StatusCode::CREATED, Json(server)))
 }
 
+pub async fn join_server(
+    State(app_state): State<Arc<AppState>>,
+    Extension(user_id): Extension<String>,
+    Path(server_id): Path<String>,
+) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
+    let server = sqlx::query_as::<_, Server>("SELECT * FROM servers WHERE id = ?")
+        .bind(&server_id)
+        .fetch_one(&app_state.pool)
+        .await
+        .map_err(|e| match e {
+            sqlx::Error::RowNotFound => (
+                StatusCode::NOT_FOUND,
+                Json(serde_json::json!({ "error": "server not found" })),
+            ),
+            _ => {
+                eprintln!("Error selecting server: {:?}", e);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(serde_json::json!({ "error": "internal server error" })),
+                )
+            }
+        })?;
+
+    sqlx::query("INSERT INTO server_members (server_id, user_id, role) VALUES (?, ?, ?)")
+        .bind(&server_id)
+        .bind(&user_id)
+        .bind("member")
+        .execute(&app_state.pool)
+        .await
+        .map_err(|e| {
+            if let sqlx::Error::Database(db_err) = &e {
+                if db_err.is_unique_violation() {
+                    return (
+                        StatusCode::CONFLICT,
+                        Json(serde_json::json!({ "error": "already a member" })),
+                    );
+                }
+            }
+            eprintln!("Error inserting server_member: {:?}", e);
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({ "error": "internal server error" })),
+            )
+        })?;
+
+    sqlx::query_as::<_, ServerMember>(
+        "SELECT * FROM server_members WHERE server_id = ? AND user_id = ?",
+    )
+    .bind(&server_id)
+    .bind(&user_id)
+    .fetch_one(&app_state.pool)
+    .await
+    .map_err(|e| {
+        eprintln!("Error selecting server_member: {:?}", e);
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "error": "internal server error" })),
+        )
+    })?;
+
+    Ok((StatusCode::CREATED, Json(server)))
+}
+
 #[derive(Deserialize)]
 pub struct CreateChannelRequestBody {
     name: String,

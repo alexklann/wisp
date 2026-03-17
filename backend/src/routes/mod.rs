@@ -75,6 +75,7 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/servers", post(server::create_server))
         .route("/servers", get(server::get_servers))
         .route("/servers/{server_id}", get(server::get_server))
+        .route("/servers/{server_id}/join", get(server::join_server))
         .route(
             "/servers/{server_id}/channels",
             post(server::create_channel),
