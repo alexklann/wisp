@@ -282,6 +282,54 @@ pub async fn create_channel(
     Ok((StatusCode::CREATED, Json(channel)))
 }
 
+pub async fn get_members(
+    State(app_state): State<Arc<AppState>>,
+    Extension(user_id): Extension<String>,
+    Path(server_id): Path<String>,
+) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
+    sqlx::query_as::<_, ServerMember>(
+        "SELECT * FROM server_members WHERE user_id = ? AND server_id = ?",
+    )
+    .bind(&user_id)
+    .bind(&server_id)
+    .fetch_one(&app_state.pool)
+    .await
+    .map_err(|e| match e {
+        sqlx::Error::RowNotFound => (
+            StatusCode::FORBIDDEN,
+            Json(serde_json::json!({ "error": "insufficient permissions" })),
+        ),
+        _ => {
+            eprintln!("Error selecting server_member: {:?}", e);
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({ "error": "internal server error" })),
+            )
+        }
+    })?;
+
+    let server_members =
+        sqlx::query_as::<_, ServerMember>("SELECT * FROM server_members WHERE server_id = ?")
+            .bind(&server_id)
+            .fetch_all(&app_state.pool)
+            .await
+            .map_err(|e| match e {
+                sqlx::Error::RowNotFound => (
+                    StatusCode::FORBIDDEN,
+                    Json(serde_json::json!({ "error": "insufficient permissions" })),
+                ),
+                _ => {
+                    eprintln!("Error selecting server_member: {:?}", e);
+                    (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        Json(serde_json::json!({ "error": "internal server error" })),
+                    )
+                }
+            })?;
+
+    Ok((StatusCode::CREATED, Json(server_members)))
+}
+
 pub async fn get_channels(
     State(app_state): State<Arc<AppState>>,
     Extension(user_id): Extension<String>,
