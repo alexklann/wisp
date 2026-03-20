@@ -1,6 +1,7 @@
 <script lang="ts">
     import { apiFetch } from "$lib/stores/api";
     import { AuthStore } from "$lib/stores/auth";
+    import { ConfigStore } from "$lib/stores/config";
     import { WsStore } from "$lib/stores/ws";
     import { onMount } from "svelte";
 
@@ -43,7 +44,6 @@
     });
 
     WsStore.on("message", (event) => {
-        console.log(event);
         messages = [...messages, event];
     });
 
@@ -81,8 +81,8 @@
 </script>
 
 <main class="container">
-    {#if servers.length > 0}
-        <div class="server-bar">
+    <div class="server-bar">
+        {#if servers.length > 0}
             {#each servers as server}
                 <div>
                     {#if server.icon_url}
@@ -101,8 +101,17 @@
                     {/if}
                 </div>
             {/each}
-        </div>
-    {/if}
+        {/if}
+        <button
+            class="icon-placeholder"
+            style="font-size: 12px; background-color: red; position: absolute; bottom: 0; margin-bottom: 8px;"
+            type="button"
+            onclick={async () => {
+                await ConfigStore.setApiUrl(null, false);
+                window.location.href = "/settings";
+            }}>delete config</button
+        >
+    </div>
     {#if channels.length > 0}
         <div class="channel-bar">
             <span>Channels</span>

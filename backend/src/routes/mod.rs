@@ -13,7 +13,7 @@ use axum::{
     extract::Request,
     http::StatusCode,
     middleware::Next,
-    response::Response,
+    response::{IntoResponse, Response},
     routing::{get, post},
 };
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
@@ -67,6 +67,10 @@ pub async fn auth_middleware(mut req: Request, next: Next) -> Result<Response, S
     Ok(next.run(req).await)
 }
 
+pub async fn health() -> impl IntoResponse {
+    StatusCode::OK
+}
+
 pub fn router() -> Router<Arc<AppState>> {
     let cors = CorsLayer::new()
         .allow_origin(Any)
@@ -76,7 +80,8 @@ pub fn router() -> Router<Arc<AppState>> {
     let public = Router::new()
         .route("/register", post(register::register))
         .route("/login", post(login::login))
-        .route("/ws", get(ws::ws_handler));
+        .route("/ws", get(ws::ws_handler))
+        .route("/health", get(health));
 
     let protected = Router::new()
         .route("/servers", post(server::create_server))

@@ -12,8 +12,6 @@
         const displayNameInput = formData.get("displayName");
         const passwordInput = formData.get("password");
 
-        console.log(usernameInput, passwordInput);
-
         const response = await fetch("http://localhost:3000/register", {
             method: "POST",
             headers: {

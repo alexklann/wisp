@@ -1,6 +1,7 @@
 import { get } from "svelte/store";
 import { writable } from "svelte/store";
 import { AuthStore } from "./auth";
+import { ConfigStore } from "./config";
 
 type ServerEvent =
   | {
@@ -38,9 +39,11 @@ function createWsStore() {
   const connected = writable(false);
   const messages = writable<any[]>([]);
 
-  function connect() {
+  async function connect() {
+    const baseUrl = await ConfigStore.getApiUrl();
+    const protocol = await ConfigStore.getApiProtocol("ws");
     const token = get(AuthStore.token);
-    socket = new WebSocket(`ws://localhost:3000/ws?token=${token}`);
+    socket = new WebSocket(`${protocol}://${baseUrl}/ws?token=${token}`);
 
     socket.onopen = () => connected.set(true);
     socket.onclose = () => connected.set(false);

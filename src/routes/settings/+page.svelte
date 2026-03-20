@@ -1,71 +1,72 @@
 <script lang="ts">
-    import { AuthStore } from "$lib/stores/auth";
+    import { goto } from "$app/navigation";
+    import { ConfigStore } from "$lib/stores/config";
 
     async function handleSubmit(event: SubmitEvent) {
         event.preventDefault();
 
-        showError = false;
-        errorMessage = "";
+        loading = true;
+        error = "";
 
         const formData = new FormData(event.currentTarget as HTMLFormElement);
-        const usernameInput = formData.get("username");
-        const passwordInput = formData.get("password");
+        const ipInput = formData.get("ip") as string;
+        const isSecureInput = formData.get("isSecure");
 
-        const response = await fetch("http://localhost:3000/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                username: usernameInput,
-                password: passwordInput,
-            }),
-        });
-
-        if (response.ok) {
-            const responseBody = await response.json();
-            await AuthStore.save(responseBody.token, responseBody);
-            window.location.href = "/";
+        try {
+            const response = await fetch(
+                `${isSecureInput ? "https" : "http"}://${ipInput}/health`,
+                {
+                    signal: AbortSignal.timeout(5000),
+                },
+            );
+            if (!response.ok) throw new Error();
+        } catch {
+            error = "Could not reach server at that address";
+            loading = false;
             return;
         }
 
-        showError = true;
-        errorMessage = response.statusText;
+        await ConfigStore.setApiUrl(
+            ipInput,
+            isSecureInput === "on" ? true : false,
+        );
+
+        window.location.href = "/";
     }
 
-    let showError: boolean = false;
-    let errorMessage: string = "";
+    var loading: boolean = false;
+    var error: string = "";
 </script>
 
 <main>
-    <h1>Login</h1>
+    <h1>Settings</h1>
     <form onsubmit={handleSubmit}>
         <label>
-            <span>Username</span>
-            <input type="text" name="username" placeholder="Username" />
+            <span>Server IP & Port</span>
+            <input
+                type="text"
+                name="ip"
+                placeholder="127.0.0.1:3000 / domain.tld"
+                autocapitalize="off"
+                autocomplete="off"
+                autocorrect="off"
+                autofocus
+            />
         </label>
-        <label>
-            <span>Password</span>
-            <input type="password" name="password" placeholder="Password" />
+        <label style="display: flex; flex-direction: row; align-items: center;">
+            <span>HTTPS?</span>
+            <input
+                style="width: 16px; height: 16px; cursor: pointer;"
+                type="checkbox"
+                name="isSecure"
+            />
         </label>
-        <button type="submit">Login</button>
-        {#if showError}
-            <span class="error-text">{errorMessage}</span>
-        {/if}
 
-        <div class="or-container">
-            <hr />
-            <span>or</span>
-            <hr />
-        </div>
-
-        <button
-            class="secondary-button"
-            type="button"
-            onclick={() => (window.location.href = "/register")}
-            >Register</button
+        <button class="secondary-button" type="submit" disabled={loading}
+            >{!loading ? "Save" : "Testing..."}</button
         >
     </form>
+    <span class="error-text">{error}</span>
 </main>
 
 <style lang="scss">
