@@ -9,3 +9,12 @@ pub struct Server {
     pub icon_url: Option<String>,
     pub created_at: DateTime<Utc>,
 }
+
+#[derive(Serialize, sqlx::FromRow)]
+pub struct ServerWithMembership {
+    pub id: String,
+    pub name: String,
+    pub icon_url: Option<String>,
+    pub role: String,
+    pub joined_at: String,
+}

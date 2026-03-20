@@ -9,7 +9,7 @@ use axum::{
 
 use crate::{
     AppState,
-    models::{Channel, Message, ServerMember},
+    models::{Channel, MessageWithSender, ServerMember},
 };
 
 pub async fn get_messages(
@@ -56,17 +56,26 @@ pub async fn get_messages(
         }
     })?;
 
-    let messages = sqlx::query_as::<_, Message>("SELECT * FROM messages WHERE channel_id = ?")
-        .bind(&channel_id)
-        .fetch_all(&app_state.pool)
-        .await
-        .map_err(|e| {
-            eprintln!("Error selecting server: {:?}", e);
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(serde_json::json!({ "error": "internal server error" })),
-            )
-        })?;
+    let messages = sqlx::query_as::<_, MessageWithSender>(
+        "SELECT m.*,
+                u.username as sender_username,
+                u.display_name as sender_display_name,
+                u.avatar_url as sender_avatar_url
+         FROM messages m
+         JOIN users u ON u.id = m.sender_id
+         WHERE m.channel_id = ?
+         ORDER BY m.created_at ASC",
+    )
+    .bind(&channel_id)
+    .fetch_all(&app_state.pool)
+    .await
+    .map_err(|e| {
+        eprintln!("Error selecting server: {:?}", e);
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "error": "internal server error" })),
+        )
+    })?;
 
     Ok((StatusCode::OK, Json(messages)))
 }

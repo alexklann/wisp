@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use bcrypt::verify;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::{AppState, models::User, routes::generate_token};
@@ -14,6 +15,12 @@ pub struct LoginRequestBody {
 
 #[derive(Serialize)]
 pub struct LoginResponseBody {
+    id: String,
+    username: String,
+    display_name: String,
+    bio: Option<String>,
+    avatar_url: Option<String>,
+    created_at: DateTime<Utc>,
     token: String,
 }
 
@@ -64,5 +71,16 @@ pub async fn login(
         )
     })?;
 
-    Ok((StatusCode::OK, Json(LoginResponseBody { token })))
+    Ok((
+        StatusCode::OK,
+        Json(LoginResponseBody {
+            id: user.id,
+            username: user.username,
+            display_name: user.display_name,
+            bio: user.bio,
+            avatar_url: user.avatar_url,
+            created_at: user.created_at,
+            token,
+        }),
+    ))
 }

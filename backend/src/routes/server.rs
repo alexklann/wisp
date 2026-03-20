@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 use crate::{
     AppState,
-    models::{Channel, Server, ServerMember},
+    models::{Channel, Server, ServerMember, ServerWithMembership},
 };
 
 #[derive(Deserialize)]
@@ -80,18 +80,22 @@ pub async fn get_servers(
     State(app_state): State<Arc<AppState>>,
     Extension(user_id): Extension<String>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
-    let servers =
-        sqlx::query_as::<_, ServerMember>("SELECT * FROM server_members WHERE user_id = ?")
-            .bind(&user_id)
-            .fetch_all(&app_state.pool)
-            .await
-            .map_err(|e| {
-                eprintln!("Error selecting server_members: {:?}", e);
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    Json(serde_json::json!({ "error": "internal server error" })),
-                )
-            })?;
+    let servers = sqlx::query_as::<_, ServerWithMembership>(
+        "SELECT s.id, s.name, s.icon_url, sm.role, sm.joined_at
+             FROM server_members sm
+             JOIN servers s ON s.id = sm.server_id
+             WHERE sm.user_id = ?",
+    )
+    .bind(&user_id)
+    .fetch_all(&app_state.pool)
+    .await
+    .map_err(|e| {
+        eprintln!("Error selecting server_members: {:?}", e);
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "error": "internal server error" })),
+        )
+    })?;
 
     Ok((StatusCode::CREATED, Json(servers)))
 }

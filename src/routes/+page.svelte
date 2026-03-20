@@ -1,156 +1,328 @@
 <script lang="ts">
-  import { invoke } from "@tauri-apps/api/core";
+    import { apiFetch } from "$lib/stores/api";
+    import { AuthStore } from "$lib/stores/auth";
+    import { WsStore } from "$lib/stores/ws";
+    import { onMount } from "svelte";
 
-  let name = $state("");
-  let greetMsg = $state("");
+    interface Server {
+        id: string;
+        name: string;
+        icon_url: string | null;
+        role: string;
+        joined_at: string;
+    }
 
-  async function greet(event: Event) {
-    event.preventDefault();
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    greetMsg = await invoke("greet", { name });
-  }
+    interface Channel {
+        id: string;
+        name: string;
+        server_id: string;
+        created_at: string;
+    }
+
+    interface Message {
+        id: number;
+        channel_id: string;
+        sender_id: string;
+        sender_username: string;
+        sender_display_name: string;
+        sender_avatar_url: string | null;
+        content: string | null;
+        message_type: string;
+        edited_at: string | null;
+        reply_to_id: string | null;
+        is_deleted: number;
+        created_at: string;
+    }
+
+    onMount(async () => {
+        await AuthStore.load();
+        const response = await apiFetch("/servers");
+        if (response.ok) {
+            servers = await response.json();
+        }
+    });
+
+    WsStore.on("message", (event) => {
+        console.log(event);
+        messages = [...messages, event];
+    });
+
+    async function loadChannels() {
+        const response = await apiFetch(`/servers/${selectedServer}/channels`);
+
+        if (response.ok) {
+            channels = await response.json();
+        }
+    }
+
+    async function loadMessages() {
+        const response = await apiFetch(
+            `/channels/${selectedChannel}/messages`,
+        );
+
+        if (response.ok) {
+            messages = await response.json();
+        }
+    }
+
+    function sendMessage() {
+        if (!selectedChannel) return;
+        WsStore.sendMessage(selectedChannel, messageInput);
+    }
+
+    let servers: Server[] = [];
+    let channels: Channel[] = [];
+    let messages: Message[] = [];
+
+    let selectedServer: string | null = null;
+    let selectedChannel: string | null = null;
+
+    let messageInput: string = "";
 </script>
 
 <main class="container">
-  <h1>Welcome to Tauri + Svelte</h1>
-
-  <div class="row">
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo vite" alt="Vite Logo" />
-    </a>
-    <a href="https://tauri.app" target="_blank">
-      <img src="/tauri.svg" class="logo tauri" alt="Tauri Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank">
-      <img src="/svelte.svg" class="logo svelte-kit" alt="SvelteKit Logo" />
-    </a>
-  </div>
-  <p>Click on the Tauri, Vite, and SvelteKit logos to learn more.</p>
-
-  <form class="row" onsubmit={greet}>
-    <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
-    <button type="submit">Greet</button>
-  </form>
-  <p>{greetMsg}</p>
+    {#if servers.length > 0}
+        <div class="server-bar">
+            {#each servers as server}
+                <div>
+                    {#if server.icon_url}
+                        <img src={server.icon_url} alt="server icon" />
+                    {:else}
+                        <button
+                            onclick={() => {
+                                selectedServer = server.id;
+                                loadChannels();
+                            }}
+                            class={`icon-placeholder ${selectedServer === server.id ? "selected" : ""}`}
+                            title={server.name}
+                        >
+                            {server.name.slice(0, 2)}
+                        </button>
+                    {/if}
+                </div>
+            {/each}
+        </div>
+    {/if}
+    {#if channels.length > 0}
+        <div class="channel-bar">
+            <span>Channels</span>
+            {#each channels as channel}
+                <button
+                    onclick={() => {
+                        if (selectedChannel === channel.id) return;
+                        selectedChannel = channel.id;
+                        loadMessages();
+                        WsStore.joinChannel(channel.id);
+                    }}
+                    class={`channel ${selectedChannel === channel.id ? "selected" : ""}`}
+                    >{channel.name}</button
+                >
+            {/each}
+        </div>
+    {/if}
+    <div class="content">
+        {#if messages.length > 0}
+            <div class="message-container">
+                {#each messages as message}
+                    <div class="message">
+                        <div class="message-header">
+                            <span class="message-sender"
+                                >{message.sender_display_name}</span
+                            >
+                            <span
+                                >{new Date(message.created_at).toLocaleString(
+                                    "de-DE",
+                                )}</span
+                            >
+                        </div>
+                        <span>{message.content}</span>
+                    </div>
+                {/each}
+            </div>
+        {/if}
+        {#if selectedChannel}
+            <input
+                type="text"
+                placeholder="Enter message..."
+                bind:value={messageInput}
+                onkeydown={(e) => {
+                    if (e.key === "Enter") {
+                        sendMessage();
+                        messageInput = "";
+                    }
+                }}
+            />
+        {/if}
+    </div>
 </main>
 
-<style>
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
-}
+<style lang="scss">
+    @use "$lib/variables" as *;
 
-.logo.svelte-kit:hover {
-  filter: drop-shadow(0 0 2em #ff3e00);
-}
+    main {
+        height: 100%;
+        width: 100%;
 
-:root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
+        display: flex;
+        flex-direction: row;
+    }
 
-  color: #0f0f0f;
-  background-color: #f6f6f6;
+    .content {
+        flex: 1;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-}
+        display: flex;
+        flex-direction: column;
 
-.container {
-  margin: 0;
-  padding-top: 10vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-}
+        padding: 16px;
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
-}
+        gap: 8px;
+    }
 
-.logo.tauri:hover {
-  filter: drop-shadow(0 0 2em #24c8db);
-}
+    input {
+        width: 100%;
 
-.row {
-  display: flex;
-  justify-content: center;
-}
+        color: $text-color;
+        background-color: $surface-color;
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
+        border: 1px solid color-mix(in srgb, $surface-color, $text-color 10%);
+        border-radius: 6px;
 
-a:hover {
-  color: #535bf2;
-}
+        padding: 12px;
 
-h1 {
-  text-align: center;
-}
+        box-sizing: border-box;
 
-input,
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: border-color 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-}
+        &:focus {
+            outline: 1px solid
+                color-mix(in srgb, $surface-color, $text-color 25%);
+        }
+    }
 
-button {
-  cursor: pointer;
-}
+    .icon-placeholder {
+        width: 64px;
+        height: 64px;
 
-button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
-}
+        display: flex;
 
-input,
-button {
-  outline: none;
-}
+        justify-content: center;
+        align-items: center;
 
-#greet-input {
-  margin-right: 5px;
-}
+        background-color: $surface-color;
+        border: 1px solid color-mix(in srgb, $text-color, transparent 90%);
+        border-radius: 16px;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f6f6f6;
-    background-color: #2f2f2f;
-  }
+        color: $text-color;
 
-  a:hover {
-    color: #24c8db;
-  }
+        font-size: 24px;
+        font-weight: bold;
 
-  input,
-  button {
-    color: #ffffff;
-    background-color: #0f0f0f98;
-  }
-  button:active {
-    background-color: #0f0f0f69;
-  }
-}
+        padding: 16px;
 
+        cursor: pointer;
+
+        transition-property: background-color;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 100ms;
+
+        &:hover {
+            background-color: color-mix(
+                in srgb,
+                $surface-color,
+                $text-color 10%
+            );
+        }
+    }
+
+    .server-bar {
+        background: $surface-color;
+
+        border-right: 1px solid color-mix(in srgb, $text-color, transparent 90%);
+
+        padding: 8px;
+    }
+
+    .channel {
+        width: 100%;
+
+        background: none;
+
+        text-align: left;
+
+        color: $text-color;
+
+        transition-property: background-color;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 100ms;
+
+        &:hover {
+            background-color: color-mix(
+                in srgb,
+                $surface-color,
+                $text-color 10%
+            );
+        }
+    }
+
+    .channel-bar {
+        width: 16rem;
+
+        display: flex;
+        flex-direction: column;
+
+        gap: 8px;
+
+        background: $surface-color;
+
+        border-right: 1px solid color-mix(in srgb, $text-color, transparent 90%);
+
+        padding: 16px;
+
+        > span {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+    }
+
+    .message-container {
+        width: 100%;
+        height: 100%;
+
+        display: flex;
+        flex-direction: column;
+
+        justify-content: flex-end;
+
+        gap: 4px;
+    }
+
+    .message {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        padding: 8px;
+
+        border-radius: 8px;
+
+        &:hover {
+            background-color: $surface-color;
+        }
+    }
+
+    .message-header {
+        display: flex;
+        flex-direction: row;
+
+        align-items: baseline;
+
+        gap: 12px;
+    }
+
+    .message-sender {
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+    .selected {
+        background-color: color-mix(in srgb, $surface-color, $text-color 10%);
+    }
 </style>

@@ -1,0 +1,42 @@
+@use "$lib/variables" as *;
+
+html,
+body {
+    margin: 0;
+    height: 100%;
+    font-size: 14px;
+
+    background-color: $background-color;
+    color: $text-color;
+
+    font-family: "Roboto", sans-serif;
+}
+
+button {
+    padding: 12px 8px;
+    font-size: 16px;
+
+    background-color: $accent-color;
+
+    border: none;
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    &:hover {
+        background-color: color-mix($accent-color, $background-color 25%);
+    }
+}
+
+input {
+    font-size: 14px;
+}
+
+a {
+    color: $accent-color;
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}

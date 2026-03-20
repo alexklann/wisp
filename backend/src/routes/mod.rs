@@ -19,6 +19,8 @@ use axum::{
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use serde::{Deserialize, Serialize};
 
+use tower_http::cors::{Any, CorsLayer};
+
 #[derive(Serialize, Deserialize)]
 pub struct Claims {
     sub: String,
@@ -66,6 +68,11 @@ pub async fn auth_middleware(mut req: Request, next: Next) -> Result<Response, S
 }
 
 pub fn router() -> Router<Arc<AppState>> {
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods(Any)
+        .allow_headers(Any);
+
     let public = Router::new()
         .route("/register", post(register::register))
         .route("/login", post(login::login))
@@ -88,5 +95,5 @@ pub fn router() -> Router<Arc<AppState>> {
         )
         .route_layer(axum::middleware::from_fn(auth_middleware));
 
-    Router::new().merge(public).merge(protected)
+    Router::new().merge(public).merge(protected).layer(cors)
 }

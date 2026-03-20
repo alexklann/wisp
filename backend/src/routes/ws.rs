@@ -14,11 +14,12 @@ use serde::Deserialize;
 use shared::ClientEvent;
 
 use crate::{
-    AppState, ChatMessage,
-    models::{Channel, ServerMember},
+    AppState, ServerEvent,
+    models::{Channel, MessageWithSender, ServerMember},
     routes::Claims,
 };
 
+// Required parameters on WS instatiation
 #[derive(Deserialize)]
 pub struct WsQuery {
     token: String,
@@ -62,7 +63,7 @@ pub async fn handle_event(
             channel_id,
             content,
         } => {
-            if let Err(e) = sqlx::query(
+            let result = sqlx::query(
                 "INSERT INTO messages (channel_id, sender_id, content, message_type) VALUES (?, ?, ?, ?)"
             )
             .bind(&channel_id)
@@ -70,22 +71,39 @@ pub async fn handle_event(
             .bind(&content)
             .bind("text")
             .execute(&app_state.pool)
-            .await
-            {
-                eprintln!("Error creating message: {:?}", e);
-                return;
-            }
+            .await;
 
-            if let Err(e) = app_state.tx.send(ChatMessage {
-                channel_id,
-                sender_id: user_id.to_string(),
-                content,
-            }) {
+            let last_insert_id = match result {
+                Ok(r) => r.last_insert_rowid(),
+                Err(e) => {
+                    eprintln!("Error creating message: {:?}", e);
+                    return;
+                }
+            };
+
+            // JOIN statement to populate MessageWithSender
+            let message = match sqlx::query_as::<_, MessageWithSender>(
+                "SELECT m.*, u.username as sender_username, u.display_name as sender_display_name, u.avatar_url as sender_avatar_url
+                 FROM messages m JOIN users u ON m.sender_id = u.id
+                 WHERE m.id = ?"
+            )
+            .bind(last_insert_id)
+            .fetch_one(&app_state.pool)
+            .await {
+                Ok(m) => m,
+                Err(e) => {
+                    eprintln!("Error fetching message: {:?}", e);
+                    return;
+                }
+            };
+
+            if let Err(e) = app_state.tx.send(ServerEvent::Message(message)) {
                 eprintln!("Error broadcasting message: {:?}", e);
                 return;
             }
         }
         ClientEvent::JoinChannel { channel_id } => {
+            // Check if the channel exists
             let channel = match sqlx::query_as::<_, Channel>("SELECT * FROM channels WHERE id = ?")
                 .bind(&channel_id)
                 .fetch_one(&app_state.pool)
@@ -102,6 +120,7 @@ pub async fn handle_event(
                 }
             };
 
+            // Check if user is part of the server
             match sqlx::query_as::<_, ServerMember>(
                 "SELECT * FROM server_members WHERE user_id = ? AND server_id = ?",
             )
@@ -126,11 +145,14 @@ pub async fn handle_event(
 
             println!("User {} joining room: {}", user_id, &channel_id);
 
+            // Reply to joinChannel request to let the User know that it worked
             let _ = sender
                 .send(Message::Text(
-                    serde_json::json!({ "type": "joined_channel", "channel_id": &channel_id })
-                        .to_string()
-                        .into(),
+                    serde_json::to_string(&ServerEvent::JoinedChannel {
+                        channel_id: channel_id.clone(),
+                    })
+                    .unwrap()
+                    .into(),
                 ))
                 .await;
 
@@ -151,6 +173,7 @@ pub async fn handle_socket(socket: WebSocket, app_state: Arc<AppState>, user_id:
 
     loop {
         tokio::select! {
+            // Outgoing client event from this cliet
             msg = receiver.next() => {
                 if let Some(Ok(Message::Text(text))) = msg {
                     match serde_json::from_str::<ClientEvent>(&text) {
@@ -164,12 +187,18 @@ pub async fn handle_socket(socket: WebSocket, app_state: Arc<AppState>, user_id:
                 }
             }
 
-            Ok(chat_msg) = rx.recv() => {
-                if Some(&chat_msg.channel_id) == current_channel.as_ref() {
-                    let json = serde_json::to_string(&chat_msg).unwrap();
-                    if sender.send(Message::Text(json.into())).await.is_err() {
-                        break;
+            // Incoming server event from any client
+            Ok(event) = rx.recv() => {
+                match &event {
+                    ServerEvent::Message(msg) => {
+                        if Some(&msg.channel_id) == current_channel.as_ref() {
+                            let json = serde_json::to_string(&event).unwrap();
+                            if sender.send(Message::Text(json.into())).await.is_err() {
+                                break;
+                            }
+                        }
                     }
+                    _ => {}
                 }
             }
         }

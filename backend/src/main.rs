@@ -1,26 +1,28 @@
 use std::{collections::HashSet, sync::Arc};
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use sqlx::SqlitePool;
 use tokio::{
     self,
     sync::{Mutex, broadcast},
 };
 
+use crate::models::MessageWithSender;
+
 mod models;
 mod routes;
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct ChatMessage {
-    pub channel_id: String,
-    pub sender_id: String,
-    pub content: String,
+#[derive(Clone, Serialize, Debug)]
+#[serde(tag = "type", rename_all = "camelCase")]
+pub enum ServerEvent {
+    Message(MessageWithSender),
+    JoinedChannel { channel_id: String },
 }
 
 struct AppState {
     user_set: Arc<Mutex<HashSet<String>>>,
     pool: SqlitePool,
-    tx: broadcast::Sender<ChatMessage>,
+    tx: broadcast::Sender<ServerEvent>,
 }
 
 #[tokio::main]
