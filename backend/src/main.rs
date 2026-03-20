@@ -41,6 +41,9 @@ async fn main() {
 
     let app = routes::router().with_state(app_state);
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let exposed_port = std::env::var("EXPOSED_PORT").expect("EXPOSED_PORT must be set");
+    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", exposed_port))
+        .await
+        .unwrap();
     axum::serve(listener, app).await.unwrap();
 }
