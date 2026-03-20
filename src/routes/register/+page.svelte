@@ -1,5 +1,6 @@
 <script lang="ts">
     import { AuthStore } from "$lib/stores/auth";
+    import { ConfigStore } from "$lib/stores/config";
 
     async function handleSubmit(event: SubmitEvent) {
         event.preventDefault();
@@ -9,10 +10,13 @@
 
         const formData = new FormData(event.currentTarget as HTMLFormElement);
         const usernameInput = formData.get("username");
-        const displayNameInput = formData.get("displayName");
+        const displayNameInput = formData.get("display_name");
         const passwordInput = formData.get("password");
 
-        const response = await fetch("http://localhost:3000/register", {
+        const baseUrl = await ConfigStore.getApiUrl();
+        const protocol = await ConfigStore.getApiProtocol("http");
+
+        const response = await fetch(`${protocol}://${baseUrl}/register`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

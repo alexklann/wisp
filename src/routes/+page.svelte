@@ -104,12 +104,12 @@
         {/if}
         <button
             class="icon-placeholder"
-            style="font-size: 12px; background-color: red; position: absolute; bottom: 0; margin-bottom: 8px;"
+            style="font-size: 8px; position: absolute; bottom: 0; margin-bottom: 8px;"
             type="button"
             onclick={async () => {
                 await ConfigStore.setApiUrl(null, false);
                 window.location.href = "/settings";
-            }}>delete config</button
+            }}>disconnect</button
         >
     </div>
     {#if channels.length > 0}
@@ -130,8 +130,8 @@
         </div>
     {/if}
     <div class="content">
-        {#if messages.length > 0}
-            <div class="message-container">
+        <div class="message-container">
+            {#if messages.length > 0}
                 {#each messages as message}
                     <div class="message">
                         <div class="message-header">
@@ -147,8 +147,8 @@
                         <span>{message.content}</span>
                     </div>
                 {/each}
-            </div>
-        {/if}
+            {/if}
+        </div>
         {#if selectedChannel}
             <input
                 type="text"
@@ -242,6 +242,8 @@
     }
 
     .server-bar {
+        min-width: 64px;
+
         background: $surface-color;
 
         border-right: 1px solid color-mix(in srgb, $text-color, transparent 90%);
