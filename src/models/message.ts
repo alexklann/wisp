@@ -1,0 +1,14 @@
+export default interface Message {
+  id: number;
+  channel_id: string;
+  sender_id: string;
+  sender_username: string;
+  sender_display_name: string;
+  sender_avatar_url: string | null;
+  content: string | null;
+  message_type: string;
+  edited_at: string | null;
+  reply_to_id: string | null;
+  is_deleted: number;
+  created_at: string;
+}

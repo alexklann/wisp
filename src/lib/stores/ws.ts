@@ -40,6 +40,15 @@ function on<K extends ServerEvent["type"]>(
   handlers[type] = handler as any;
 }
 
+function off<K extends ServerEvent["type"]>(
+  type: K,
+  handler: (event: Extract<ServerEvent, { type: K }>) => void,
+) {
+  if (handlers[type] === (handler as any)) {
+    delete handlers[type];
+  }
+}
+
 function createWsStore() {
   let socket: WebSocket | null = null;
   const connected = writable(false);
@@ -101,6 +110,7 @@ function createWsStore() {
     joinChannel,
     sendTyping,
     on,
+    off,
   };
 }
 

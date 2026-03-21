@@ -7,6 +7,10 @@
     import { ConfigStore } from "$lib/stores/config";
     import { goto } from "$app/navigation";
 
+    let { children } = $props();
+
+    let isReady = $state(false);
+
     onMount(async () => {
         const configured = await ConfigStore.isConfigured();
         if (!configured) {
@@ -16,7 +20,24 @@
 
         await AuthStore.load();
         await WsStore.connect();
+        isReady = true;
     });
 </script>
 
-<slot />
+{#if isReady}
+    {@render children()}
+{:else}
+    <div class="loading-screen">Authenticating...</div>
+{/if}
+
+<style lang="scss">
+    .loading-screen {
+        width: 100%;
+        height: 100%;
+
+        display: flex;
+
+        justify-content: center;
+        align-items: center;
+    }
+</style>
