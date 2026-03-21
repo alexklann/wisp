@@ -9,7 +9,7 @@ use axum::{
 
 use crate::{
     AppState,
-    models::{Channel, MessageWithSender, ServerMember},
+    models::{Channel, ChatMessage, ServerMember},
 };
 
 pub async fn get_messages(
@@ -56,7 +56,7 @@ pub async fn get_messages(
         }
     })?;
 
-    let messages = sqlx::query_as::<_, MessageWithSender>(
+    let messages = sqlx::query_as::<_, ChatMessage>(
         "SELECT m.*,
                 u.username as sender_username,
                 u.display_name as sender_display_name,

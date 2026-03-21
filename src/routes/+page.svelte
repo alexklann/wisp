@@ -35,6 +35,11 @@
         created_at: string;
     }
 
+    let typingInterval: ReturnType<typeof setInterval> | undefined;
+    let typingTimeout: ReturnType<typeof setTimeout> | undefined;
+    const typingTimers = new Map<string, ReturnType<typeof setTimeout>>();
+    let typingUsers: string[] = [];
+
     onMount(async () => {
         await AuthStore.load();
         const response = await apiFetch("/servers");
@@ -45,6 +50,22 @@
 
     WsStore.on("message", (event) => {
         messages = [...messages, event];
+    });
+
+    WsStore.on("typingStart", (event) => {
+        if (!typingUsers.includes(event.display_name)) {
+            typingUsers = [...typingUsers, event.display_name];
+        }
+        clearTimeout(typingTimers.get(event.user_id));
+        typingTimers.set(
+            event.user_id,
+            setTimeout(() => {
+                typingUsers = typingUsers.filter(
+                    (u) => u !== event.display_name,
+                );
+                typingTimers.delete(event.user_id);
+            }, 3000),
+        );
     });
 
     async function loadChannels() {
@@ -68,6 +89,26 @@
     function sendMessage() {
         if (!selectedChannel) return;
         WsStore.sendMessage(selectedChannel, messageInput);
+    }
+
+    function handleTyping() {
+        if (!selectedChannel) return;
+
+        // Start interval if not already typing
+        if (!typingInterval) {
+            WsStore.sendTyping(selectedChannel);
+            typingInterval = setInterval(() => {
+                WsStore.sendTyping(selectedChannel!);
+            }, 2500);
+        }
+
+        // Reset the stop timer on every keystroke
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+            clearInterval(typingInterval);
+            typingInterval = undefined;
+            typingTimeout = undefined;
+        }, 3000);
     }
 
     let servers: Server[] = [];
@@ -149,11 +190,20 @@
                 {/each}
             {/if}
         </div>
+        {#if typingUsers.length > 0}
+            <span>
+                {typingUsers.join(", ")}
+                {typingUsers.length === 1 ? "is" : "are"} typing...
+            </span>
+        {:else}
+            <div style="min-height: 16px;"></div>
+        {/if}
         {#if selectedChannel}
             <input
                 type="text"
                 placeholder="Enter message..."
                 bind:value={messageInput}
+                oninput={handleTyping}
                 onkeydown={(e) => {
                     if (e.key === "Enter") {
                         sendMessage();
@@ -301,6 +351,8 @@
         flex-direction: column;
 
         justify-content: flex-end;
+
+        overflow-y: scroll;
 
         gap: 4px;
     }

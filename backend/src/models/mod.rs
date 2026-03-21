@@ -4,7 +4,7 @@ mod server;
 mod server_member;
 mod user;
 pub use channel::Channel;
-pub use message::MessageWithSender;
+pub use message::ChatMessage;
 pub use server::Server;
 pub use server::ServerWithMembership;
 pub use server_member::ServerMember;

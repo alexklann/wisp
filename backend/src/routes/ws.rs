@@ -11,11 +11,10 @@ use axum::{
 use futures::{SinkExt, StreamExt, stream::SplitSink};
 use jsonwebtoken::{DecodingKey, Validation, decode};
 use serde::Deserialize;
-use shared::ClientEvent;
 
 use crate::{
-    AppState, ServerEvent,
-    models::{Channel, MessageWithSender, ServerMember},
+    AppState, ClientEvent, ServerEvent,
+    models::{Channel, ChatMessage, ServerMember, User},
     routes::Claims,
 };
 
@@ -82,7 +81,7 @@ pub async fn handle_event(
             };
 
             // JOIN statement to populate MessageWithSender
-            let message = match sqlx::query_as::<_, MessageWithSender>(
+            let message = match sqlx::query_as::<_, ChatMessage>(
                 "SELECT m.*, u.username as sender_username, u.display_name as sender_display_name, u.avatar_url as sender_avatar_url
                  FROM messages m JOIN users u ON m.sender_id = u.id
                  WHERE m.id = ?"
@@ -158,6 +157,31 @@ pub async fn handle_event(
 
             *current_channel = Some(channel_id);
         }
+        ClientEvent::TypingStart { channel_id } => {
+            let user = match sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = ?")
+                .bind(user_id)
+                .fetch_one(&app_state.pool)
+                .await
+            {
+                Ok(u) => u,
+                Err(e) => {
+                    eprintln!("Error fetching user: {:?}", e);
+                    return;
+                }
+            };
+
+            let _ = sender
+                .send(Message::Text(
+                    serde_json::to_string(&ServerEvent::TypingStart {
+                        channel_id: channel_id.clone(),
+                        user_id: user.id,
+                        display_name: user.display_name,
+                    })
+                    .unwrap()
+                    .into(),
+                ))
+                .await;
+        }
     }
 }
 
@@ -192,6 +216,14 @@ pub async fn handle_socket(socket: WebSocket, app_state: Arc<AppState>, user_id:
                 match &event {
                     ServerEvent::Message(msg) => {
                         if Some(&msg.channel_id) == current_channel.as_ref() {
+                            let json = serde_json::to_string(&event).unwrap();
+                            if sender.send(Message::Text(json.into())).await.is_err() {
+                                break;
+                            }
+                        }
+                    }
+                    ServerEvent::TypingStart {channel_id, user_id, display_name} => {
+                        if Some(channel_id) == current_channel.as_ref() {
                             let json = serde_json::to_string(&event).unwrap();
                             if sender.send(Message::Text(json.into())).await.is_err() {
                                 break;

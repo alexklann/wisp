@@ -19,7 +19,13 @@ type ServerEvent =
       is_deleted: number;
       created_at: string;
     }
-  | { type: "joinedChannel"; channel_id: string };
+  | { type: "joinedChannel"; channel_id: string }
+  | {
+      type: "typingStart";
+      channel_id: string;
+      user_id: string;
+      display_name: string;
+    };
 
 const handlers: {
   [K in ServerEvent["type"]]?: (
@@ -78,6 +84,13 @@ function createWsStore() {
     });
   }
 
+  function sendTyping(channelId: string) {
+    send({
+      type: "typingStart",
+      channel_id: channelId,
+    });
+  }
+
   return {
     connected,
     messages,
@@ -86,6 +99,7 @@ function createWsStore() {
     send,
     sendMessage,
     joinChannel,
+    sendTyping,
     on,
   };
 }

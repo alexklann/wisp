@@ -1,21 +1,8 @@
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 
-#[derive(sqlx::FromRow, Serialize)]
-pub struct Message {
-    pub id: u64,
-    pub channel_id: String,
-    pub sender_id: String,
-    pub content: Option<String>,
-    pub message_type: String,
-    pub edited_at: Option<DateTime<Utc>>,
-    pub reply_to_id: String,
-    pub is_deleted: u8,
-    pub created_at: DateTime<Utc>,
-}
-
 #[derive(sqlx::FromRow, Serialize, Clone, Debug)]
-pub struct MessageWithSender {
+pub struct ChatMessage {
     pub id: u64,
     pub channel_id: String,
     pub sender_id: String,

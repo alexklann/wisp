@@ -1,13 +1,13 @@
 use std::{collections::HashSet, sync::Arc};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use tokio::{
     self,
     sync::{Mutex, broadcast},
 };
 
-use crate::models::MessageWithSender;
+use crate::models::ChatMessage;
 
 mod models;
 mod routes;
@@ -15,8 +15,24 @@ mod routes;
 #[derive(Clone, Serialize, Debug)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum ServerEvent {
-    Message(MessageWithSender),
-    JoinedChannel { channel_id: String },
+    Message(ChatMessage),
+    JoinedChannel {
+        channel_id: String,
+    },
+    TypingStart {
+        channel_id: String,
+        user_id: String,
+        display_name: String,
+    },
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(tag = "type", rename_all = "camelCase")]
+pub enum ClientEvent {
+    Ping,
+    SendMessage { channel_id: String, content: String },
+    JoinChannel { channel_id: String },
+    TypingStart { channel_id: String },
 }
 
 struct AppState {
