@@ -170,17 +170,14 @@ pub async fn handle_event(
                 }
             };
 
-            let _ = sender
-                .send(Message::Text(
-                    serde_json::to_string(&ServerEvent::TypingStart {
-                        channel_id: channel_id.clone(),
-                        user_id: user.id,
-                        display_name: user.display_name,
-                    })
-                    .unwrap()
-                    .into(),
-                ))
-                .await;
+            if let Err(e) = app_state.tx.send(ServerEvent::TypingStart {
+                channel_id,
+                user_id: user.id,
+                display_name: user.display_name,
+            }) {
+                eprintln!("Error broadcasting typing state: {:?}", e);
+                return;
+            }
         }
     }
 }
