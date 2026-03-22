@@ -13,7 +13,9 @@
 
     function sendMessage() {
         if (!uiState.selectedChannel) return;
+        if (messageInput.trim().length === 0) return;
         WsStore.sendMessage(uiState.selectedChannel, messageInput);
+        messageInput = "";
     }
 
     function handleTyping() {
@@ -137,7 +139,6 @@
         onkeydown={(e) => {
             if (e.key === "Enter") {
                 sendMessage();
-                messageInput = "";
             }
         }}
     />

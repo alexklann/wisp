@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { writeText, readText } from "@tauri-apps/plugin-clipboard-manager";
     import { apiFetch } from "$lib/stores/api";
     import { uiState } from "$lib/stores/uiState.svelte";
     import { WsStore } from "$lib/stores/ws";
@@ -44,6 +45,10 @@
             >{channel.name}</button
         >
     {/each}
+    <button
+        onclick={async () => await writeText(uiState.selectedServer ?? "")}
+        style="margin-top: auto;">Copy Server ID</button
+    >
 </div>
 
 <style lang="scss">
@@ -53,6 +58,8 @@
         background: none;
 
         text-align: left;
+
+        padding: 8px !important;
 
         color: $text-color;
 
@@ -70,7 +77,7 @@
     }
 
     .channel-bar {
-        width: 16rem;
+        width: 12rem;
 
         display: flex;
         flex-direction: column;

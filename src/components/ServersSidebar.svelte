@@ -4,6 +4,7 @@
     import { onMount } from "svelte";
     import type Server from "../models/server";
     import { ConfigStore } from "$lib/stores/config";
+    import { popup } from "$lib/stores/popup";
 
     onMount(async () => {
         const response = await apiFetch("/servers");
@@ -18,38 +19,55 @@
 <div class="server-bar">
     {#if servers.length > 0}
         {#each servers as server}
-            <div>
-                {#if server.icon_url}
-                    <img src={server.icon_url} alt="server icon" />
-                {:else}
-                    <button
-                        onclick={() => {
-                            uiState.selectedServer = server.id;
-                            uiState.selectedChannel = null;
-                        }}
-                        class={`icon-placeholder ${uiState.selectedServer === server.id ? "selected" : ""}`}
-                        title={server.name}
-                    >
-                        {server.name.slice(0, 2)}
-                    </button>
-                {/if}
-            </div>
+            {#if server.icon_url}
+                <img src={server.icon_url} alt="server icon" />
+            {:else}
+                <button
+                    onclick={() => {
+                        uiState.selectedServer = server.id;
+                        uiState.selectedChannel = null;
+                    }}
+                    class={`icon-placeholder ${uiState.selectedServer === server.id ? "selected" : ""}`}
+                    title={server.name}
+                >
+                    {server.name.slice(0, 2)}
+                </button>
+            {/if}
         {/each}
     {/if}
     <button
         class="icon-placeholder"
-        style="font-size: 8px; position: absolute; bottom: 0; margin-bottom: 8px;"
+        title="Join Server"
+        onclick={() => {
+            popup.set({
+                type: "joinServer",
+                onConfirm: async (serverId: string) => {
+                    await apiFetch(`/servers/${serverId}/join`);
+                    window.location.reload();
+                },
+            });
+        }}
+    >
+        +
+    </button>
+    <button
+        class="icon-placeholder"
+        style="position: absolute; bottom: 0; margin-bottom: 8px;"
         type="button"
         onclick={async () => {
             await ConfigStore.setApiUrl(null, false);
             window.location.href = "/settings";
-        }}>disconnect</button
+        }}>DC</button
     >
 </div>
 
 <style lang="scss">
     .server-bar {
-        min-width: 64px;
+        min-width: 48px;
+
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
 
         background: $surface-color;
 
@@ -59,8 +77,8 @@
     }
 
     .icon-placeholder {
-        width: 64px;
-        height: 64px;
+        width: 48px;
+        height: 48px;
 
         display: flex;
 
