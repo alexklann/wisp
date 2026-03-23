@@ -3,38 +3,12 @@
     import { uiState } from "$lib/stores/uiState.svelte";
     import { WsStore } from "$lib/stores/ws";
     import type Message from "../models/message";
+    import TextInput from "./TextInput.svelte";
 
-    let typingInterval: ReturnType<typeof setInterval> | undefined;
-    let typingTimeout: ReturnType<typeof setTimeout> | undefined;
     const typingTimers = new Map<string, ReturnType<typeof setTimeout>>();
     let typingUsers: string[] = $state([]);
 
     let scrollContainer = $state<HTMLDivElement>();
-
-    function sendMessage() {
-        if (!uiState.selectedChannel) return;
-        if (messageInput.trim().length === 0) return;
-        WsStore.sendMessage(uiState.selectedChannel, messageInput);
-        messageInput = "";
-    }
-
-    function handleTyping() {
-        if (!uiState.selectedChannel) return;
-
-        if (!typingInterval) {
-            WsStore.sendTyping(uiState.selectedChannel);
-            typingInterval = setInterval(() => {
-                WsStore.sendTyping(uiState.selectedChannel!);
-            }, 2500);
-        }
-
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => {
-            clearInterval(typingInterval);
-            typingInterval = undefined;
-            typingTimeout = undefined;
-        }, 3000);
-    }
 
     $effect(() => {
         const handleMessage = (event: Message) => {
@@ -100,7 +74,6 @@
     });
 
     let messages: Message[] = $state([]);
-    let messageInput: string = $state("");
 </script>
 
 <div class="content">
@@ -131,17 +104,7 @@
     {:else}
         <div style="min-height: 16px;"></div>
     {/if}
-    <input
-        type="text"
-        placeholder="Enter message..."
-        bind:value={messageInput}
-        oninput={handleTyping}
-        onkeydown={(e) => {
-            if (e.key === "Enter") {
-                sendMessage();
-            }
-        }}
-    />
+    <TextInput />
 </div>
 
 <style lang="scss">
@@ -154,25 +117,6 @@
         padding: 16px;
 
         gap: 8px;
-    }
-
-    input {
-        width: 100%;
-
-        color: $text-color;
-        background-color: $surface-color;
-
-        border: 1px solid color-mix(in srgb, $surface-color, $text-color 10%);
-        border-radius: 6px;
-
-        padding: 12px;
-
-        box-sizing: border-box;
-
-        &:focus {
-            outline: 1px solid
-                color-mix(in srgb, $surface-color, $text-color 25%);
-        }
     }
 
     .message-container {
@@ -201,6 +145,10 @@
         &:hover {
             background-color: $surface-color;
         }
+    }
+
+    .message span {
+        white-space: pre-wrap;
     }
 
     .message-header {
