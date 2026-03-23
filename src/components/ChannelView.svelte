@@ -1,4 +1,5 @@
 <script lang="ts">
+    import pushNotification from "$lib/sendNotification";
     import { apiFetch } from "$lib/stores/api";
     import { uiState } from "$lib/stores/uiState.svelte";
     import { WsStore } from "$lib/stores/ws";
@@ -11,8 +12,12 @@
     let scrollContainer = $state<HTMLDivElement>();
 
     $effect(() => {
-        const handleMessage = (event: Message) => {
+        const handleMessage = async (event: Message) => {
             messages.push(event);
+            await pushNotification(
+                event.sender_display_name,
+                event.content ?? "No message content",
+            );
         };
 
         const handleTypingEvent = (event: any) => {

@@ -1,9 +1,10 @@
 <script lang="ts">
-    import { writeText, readText } from "@tauri-apps/plugin-clipboard-manager";
+    import { writeText } from "@tauri-apps/plugin-clipboard-manager";
     import { apiFetch } from "$lib/stores/api";
     import { uiState } from "$lib/stores/uiState.svelte";
     import { WsStore } from "$lib/stores/ws";
     import type Channel from "../models/channel";
+    import pushNotification from "$lib/sendNotification";
 
     let channels: Channel[] = $state([]);
 
