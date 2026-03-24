@@ -6,14 +6,23 @@
     import type Message from "../models/message";
     import TextInput from "./TextInput.svelte";
 
+    let typingUsers: { userId: string; displayName: string }[] = $state([]);
     const typingTimers = new Map<string, ReturnType<typeof setTimeout>>();
-    let typingUsers: string[] = $state([]);
 
     let scrollContainer = $state<HTMLDivElement>();
 
     $effect(() => {
         const handleMessage = async (event: Message) => {
             messages.push(event);
+
+            if (typingTimers.has(event.sender_id)) {
+                clearTimeout(typingTimers.get(event.sender_id));
+                typingTimers.delete(event.sender_id);
+                typingUsers = typingUsers.filter(
+                    (user) => user.userId !== event.sender_id,
+                );
+            }
+
             await pushNotification(
                 event.sender_display_name,
                 event.content ?? "No message content",
@@ -21,15 +30,19 @@
         };
 
         const handleTypingEvent = (event: any) => {
-            if (!typingUsers.includes(event.display_name)) {
-                typingUsers.push(event.display_name);
+            if (typingTimers.has(event.user_id)) {
+                clearTimeout(typingTimers.get(event.user_id));
+            } else {
+                typingUsers = [
+                    ...typingUsers,
+                    { userId: event.user_id, displayName: event.display_name },
+                ];
             }
-            clearTimeout(typingTimers.get(event.user_id));
             typingTimers.set(
                 event.user_id,
                 setTimeout(() => {
                     typingUsers = typingUsers.filter(
-                        (u) => u !== event.display_name,
+                        (user) => user.userId !== event.user_id,
                     );
                     typingTimers.delete(event.user_id);
                 }, 3000),
@@ -43,6 +56,7 @@
             WsStore.off("message", handleMessage);
             WsStore.off("typingStart", handleTypingEvent);
             typingTimers.forEach((timer) => clearTimeout(timer));
+            typingTimers.clear();
         };
     });
 
@@ -103,7 +117,7 @@
     </div>
     {#if typingUsers.length > 0}
         <span>
-            {typingUsers.join(", ")}
+            {typingUsers.map((u) => u.displayName).join(", ")}
             {typingUsers.length === 1 ? "is" : "are"} typing...
         </span>
     {:else}
