@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { goto } from "$app/navigation";
     import { AuthStore } from "$lib/stores/auth";
     import { ConfigStore } from "$lib/stores/config";
 
@@ -15,9 +16,7 @@
         const baseUrl = await ConfigStore.getApiUrl();
         const protocol = await ConfigStore.getApiProtocol("http");
 
-        console.log(`${protocol}://${baseUrl}/login`);
-
-        const response = await fetch(`${protocol}://${baseUrl}/login`, {
+        const response = await fetch(`${protocol}://${baseUrl}/auth/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -31,7 +30,7 @@
         if (response.ok) {
             const responseBody = await response.json();
             await AuthStore.save(responseBody.token, responseBody);
-            window.location.href = "/";
+            goto("/");
             return;
         }
 

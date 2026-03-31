@@ -1,7 +1,9 @@
 mod channel;
 mod login;
+mod message;
 mod register;
 mod server;
+mod upload;
 mod ws;
 
 use std::sync::Arc;
@@ -14,7 +16,7 @@ use axum::{
     http::StatusCode,
     middleware::Next,
     response::{IntoResponse, Response},
-    routing::{get, post},
+    routing::{delete, get, post},
 };
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use serde::{Deserialize, Serialize};
@@ -98,6 +100,8 @@ pub fn router() -> Router<Arc<AppState>> {
             "/channels/{channel_id}/messages",
             get(channel::get_messages),
         )
+        .route("/messages/{message_id}", delete(message::delete_message))
+        .route("/upload", post(upload::upload_chunk))
         .route_layer(axum::middleware::from_fn(auth_middleware));
 
     Router::new().merge(public).merge(protected).layer(cors)

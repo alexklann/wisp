@@ -104,11 +104,7 @@
                         <span class="message-sender"
                             >{message.sender_display_name}</span
                         >
-                        <span
-                            >{new Date(message.created_at).toLocaleString(
-                                "de-DE",
-                            )}</span
-                        >
+                        <span>{message.created_at}</span>
                     </div>
                     <span>{message.content}</span>
                 </div>

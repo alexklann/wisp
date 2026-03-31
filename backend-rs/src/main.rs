@@ -3,7 +3,7 @@ use std::{collections::HashSet, sync::Arc};
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use tokio::{
-    self,
+    self, fs,
     sync::{Mutex, broadcast},
 };
 
@@ -49,6 +49,16 @@ async fn main() {
     let pool = SqlitePool::connect(&database_url)
         .await
         .expect("Failed to connect to database");
+
+    if let Err(e) = fs::create_dir_all("./uploads/images").await {
+        eprintln!("Error creating folder ./uploads/images: {:?}", e);
+        return;
+    }
+
+    if let Err(e) = fs::create_dir_all("./uploads/files").await {
+        eprintln!("Error creating folder ./uploads/files: {:?}", e);
+        return;
+    }
 
     let user_set = Arc::new(Mutex::new(HashSet::new()));
     let (tx, _rx) = broadcast::channel(100);

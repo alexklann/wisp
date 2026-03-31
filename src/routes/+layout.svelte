@@ -6,13 +6,19 @@
     import { WsStore } from "$lib/stores/ws";
     import { ConfigStore } from "$lib/stores/config";
     import { goto } from "$app/navigation";
+    import { page } from "$app/stores";
     import JoinServerPopup from "../components/popups/JoinServerPopup.svelte";
 
     let { children } = $props();
 
-    let isReady = $state(false);
+    let isReady = $state(true);
 
     onMount(async () => {
+        if ($page.url.pathname === "/settings") {
+            isReady = true;
+            return;
+        }
+
         const configured = await ConfigStore.isConfigured();
         if (!configured) {
             await goto("/settings");

@@ -1,0 +1,14 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "aiosqlite>=0.22.1",
+    "bcrypt>=5.0.0",
+    "fastapi[standard]>=0.135.2",
+    "greenlet>=3.3.2",
+    "pyjwt>=2.12.1",
+    "sqlmodel>=0.0.37",
+]

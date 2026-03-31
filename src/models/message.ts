@@ -1,4 +1,5 @@
 export default interface Message {
+  type: "message";
   id: number;
   channel_id: string;
   sender_id: string;

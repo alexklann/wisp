@@ -16,7 +16,7 @@
         const baseUrl = await ConfigStore.getApiUrl();
         const protocol = await ConfigStore.getApiProtocol("http");
 
-        const response = await fetch(`${protocol}://${baseUrl}/register`, {
+        const response = await fetch(`${protocol}://${baseUrl}/auth/register`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
