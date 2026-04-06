@@ -30,6 +30,8 @@
         };
 
         const handleTypingEvent = (event: any) => {
+            if (event.channel_id != uiState.selectedChannel) return;
+
             if (typingTimers.has(event.user_id)) {
                 clearTimeout(typingTimers.get(event.user_id));
             } else {
@@ -104,7 +106,11 @@
                         <span class="message-sender"
                             >{message.sender_display_name}</span
                         >
-                        <span>{message.created_at}</span>
+                        <span
+                            >{new Date(message.created_at).toLocaleString(
+                                "de-DE",
+                            )}</span
+                        >
                     </div>
                     <span>{message.content}</span>
                 </div>

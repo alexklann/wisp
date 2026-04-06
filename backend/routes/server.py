@@ -31,6 +31,10 @@ async def post_server(
     await session.commit()
     await session.refresh(server)
 
+    server_member = ServerMember(server_id=server.id, user_id=user_id, role="owner")
+    session.add(server_member)
+    await session.commit()
+
     return server
 
 

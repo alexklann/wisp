@@ -31,7 +31,7 @@
             isSecureInput === "on" ? true : false,
         );
 
-        window.location.href = "/";
+        goto("/");
     }
 
     var loading: boolean = false;

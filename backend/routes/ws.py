@@ -100,7 +100,7 @@ async def handle_event(
 
             await state.broadcast(
                 {
-                    "type": "typing_start",
+                    "type": "typingStart",
                     "channel_id": channel_id,
                     "user_id": user.id,
                     "display_name": user.display_name,
@@ -158,7 +158,7 @@ async def ws_handler(
                 if event.get("channel_id") == current_channel[0]:
                     await websocket.send_text(json.dumps(event))
 
-            elif kind == "typing_start":
+            elif kind == "typingStart":
                 if event.get("channel_id") == current_channel[0]:
                     await websocket.send_text(json.dumps(event))
 
