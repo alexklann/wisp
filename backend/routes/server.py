@@ -78,7 +78,11 @@ async def get_server(
     session: AsyncSession = Depends(get_session),
     user_id: str = Depends(get_current_user_id),
 ):
-    statement = select(ServerMember).where(ServerMember.user_id == user_id)
+    statement = (
+        select(ServerMember)
+        .where(ServerMember.user_id == user_id)
+        .where(ServerMember.server_id == server_id)
+    )
     result = await session.exec(statement)
     server_member = result.first()
 
