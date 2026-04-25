@@ -8,7 +8,8 @@ from sqlmodel import col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from database import get_session
-from models import Channel, ChatMessageResponse, Message, User
+from models import Channel, ChatMessageResponse, Message, ServerMember, User
+from routes.auth import get_current_user_id
 
 router = APIRouter()
 
@@ -24,7 +25,11 @@ class RegisterResponseBody(BaseModel):
 
 
 @router.get("/{channel_id}/messages")
-async def get_messages(channel_id: str, session: AsyncSession = Depends(get_session)):
+async def get_messages(
+    channel_id: str,
+    session: AsyncSession = Depends(get_session),
+    user_id: str = Depends(get_current_user_id),
+):
     statement = select(Channel).where(Channel.id == channel_id)
     result = await session.exec(statement)
     channel = result.first()
@@ -33,6 +38,20 @@ async def get_messages(channel_id: str, session: AsyncSession = Depends(get_sess
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Channel does not exist",
+        )
+
+    statement = (
+        select(ServerMember)
+        .where(ServerMember.server_id == channel.server_id)
+        .where(ServerMember.user_id == user_id)
+    )
+    result = await session.exec(statement)
+    server_member = result.first()
+
+    if server_member is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You're not member of this server",
         )
 
     statement = (
