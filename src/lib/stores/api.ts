@@ -19,7 +19,7 @@ export async function apiFetch(url: string, options: RequestInit = {}) {
 
   if (response.status === 401) {
     await AuthStore.clear();
-    goto("/login");
+    await goto("/login");
   }
 
   return response;

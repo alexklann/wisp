@@ -5,6 +5,7 @@
     import type Server from "../models/server";
     import { ConfigStore } from "$lib/stores/config";
     import { popup } from "$lib/stores/popup";
+    import { AuthStore } from "$lib/stores/auth";
 
     onMount(async () => {
         const response = await apiFetch("/servers");
@@ -56,6 +57,7 @@
         type="button"
         onclick={async () => {
             await ConfigStore.setApiUrl(null, false);
+            await AuthStore.clear();
             window.location.href = "/settings";
         }}>DC</button
     >

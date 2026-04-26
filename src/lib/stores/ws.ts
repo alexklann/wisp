@@ -2,6 +2,7 @@ import { get } from "svelte/store";
 import { writable } from "svelte/store";
 import { AuthStore } from "./auth";
 import { ConfigStore } from "./config";
+import { goto } from "$app/navigation";
 
 type ServerEvent =
   | {
@@ -61,7 +62,19 @@ function createWsStore() {
     socket = new WebSocket(`${protocol}://${baseUrl}/ws?token=${token}`);
 
     socket.onopen = () => connected.set(true);
-    socket.onclose = () => connected.set(false);
+    socket.onclose = async (event) => {
+      connected.set(false);
+      if (event.code === 1008) {
+        console.error(
+          "WebSocket connection closed due to policy violation (invalid token)",
+        );
+
+        await AuthStore.clear();
+        await goto("/settings");
+      } else {
+        console.error("WebSocket connection closed", event.reason);
+      }
+    };
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data) as ServerEvent;
       const handler = handlers[data.type];

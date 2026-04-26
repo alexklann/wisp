@@ -38,6 +38,7 @@ export class AuthStore {
   }
 
   static async clear() {
+    console.log("Clearing AuthStore");
     const store = await this.getStore();
     await store.delete("token");
     await store.delete("user");

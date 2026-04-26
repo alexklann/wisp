@@ -30,7 +30,7 @@
         if (response.ok) {
             const responseBody = await response.json();
             await AuthStore.save(responseBody.token, responseBody);
-            goto("/");
+            await goto("/");
             return;
         }
 

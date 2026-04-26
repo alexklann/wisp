@@ -31,7 +31,7 @@
             isSecureInput === "on" ? true : false,
         );
 
-        goto("/");
+        await goto("/");
     }
 
     var loading: boolean = false;
