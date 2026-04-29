@@ -18,7 +18,7 @@
 
         async function fetchChannels() {
             const response = await apiFetch(
-                `/servers/${uiState.selectedServer}/channels`,
+                `/servers/${uiState.selectedServer}/channels/`,
             );
             if (response.ok && !isAborted) {
                 channels = await response.json();

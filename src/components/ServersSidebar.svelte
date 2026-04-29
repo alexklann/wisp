@@ -8,7 +8,7 @@
     import { AuthStore } from "$lib/stores/auth";
 
     onMount(async () => {
-        const response = await apiFetch("/servers");
+        const response = await apiFetch("/servers/");
         if (response.ok) {
             servers = await response.json();
         }
@@ -43,7 +43,7 @@
             popup.set({
                 type: "joinServer",
                 onConfirm: async (serverId: string) => {
-                    await apiFetch(`/servers/${serverId}/join`);
+                    await apiFetch(`/servers/${serverId}/join/`);
                     window.location.reload();
                 },
             });

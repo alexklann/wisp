@@ -72,7 +72,7 @@ async def get_servers(
     return servers
 
 
-@router.get("/{server_id}")
+@router.get("/{server_id}/")
 async def get_server(
     server_id: str,
     session: AsyncSession = Depends(get_session),
@@ -105,7 +105,7 @@ async def get_server(
     return server
 
 
-@router.get("/{server_id}/join")
+@router.get("/{server_id}/join/")
 async def get_join_server(
     server_id: str,
     session: AsyncSession = Depends(get_session),
@@ -146,7 +146,7 @@ class CreateChannelRequestBody(BaseModel):
     name: str
 
 
-@router.post("/{server_id}/channels")
+@router.post("/{server_id}/channels/")
 async def post_channels(
     server_id: str,
     requestBody: CreateChannelRequestBody,
@@ -194,7 +194,7 @@ async def post_channels(
         )
 
 
-@router.get("/{server_id}/channels")
+@router.get("/{server_id}/channels/")
 async def get_channels(
     server_id: str,
     session: AsyncSession = Depends(get_session),
@@ -221,7 +221,7 @@ async def get_channels(
     return channels
 
 
-@router.get("/{server_id}/members")
+@router.get("/{server_id}/members/")
 async def get_server_members(
     server_id: str,
     session: AsyncSession = Depends(get_session),

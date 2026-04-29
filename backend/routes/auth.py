@@ -64,7 +64,7 @@ class RegisterResponseBody(BaseModel):
     token: str
 
 
-@router.post("/register")
+@router.post("/register/")
 async def post_register(
     requestBody: RegisterRequestBody, session: AsyncSession = Depends(get_session)
 ):
@@ -105,7 +105,7 @@ class LoginResponseBody(BaseModel):
     token: str
 
 
-@router.post("/login")
+@router.post("/login/")
 async def post_login(
     requestBody: LoginRequestBody, session: AsyncSession = Depends(get_session)
 ):

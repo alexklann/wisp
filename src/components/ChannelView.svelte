@@ -72,7 +72,7 @@
 
         async function fetchMessages() {
             const response = await apiFetch(
-                `/channels/${uiState.selectedChannel}/messages`,
+                `/channels/${uiState.selectedChannel}/messages/`,
             );
             if (response.ok && !isAborted) {
                 messages = await response.json();

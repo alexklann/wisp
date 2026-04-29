@@ -15,7 +15,7 @@ export class ConfigStore {
 
   static async getApiProtocol(type: "http" | "ws"): Promise<string> {
     const store = await this.getStore();
-    const isSecure = await store.get<string>("api_secure");
+    const isSecure = (await store.get<boolean>("api_secure")) ?? true;
     if (type === "http") {
       return isSecure ? "https" : "http";
     }

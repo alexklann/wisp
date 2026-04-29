@@ -24,7 +24,7 @@ class RegisterResponseBody(BaseModel):
     token: str
 
 
-@router.get("/{channel_id}/messages")
+@router.get("/{channel_id}/messages/")
 async def get_messages(
     channel_id: str,
     session: AsyncSession = Depends(get_session),

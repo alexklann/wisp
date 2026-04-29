@@ -11,7 +11,7 @@
 
     let { children } = $props();
 
-    let isReady = $state(true);
+    let isReady = $state(false);
 
     onMount(async () => {
         if ($page.url.pathname === "/settings") {

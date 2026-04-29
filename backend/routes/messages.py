@@ -24,7 +24,7 @@ class RegisterResponseBody(BaseModel):
     token: str
 
 
-@router.delete("/{message_id}")
+@router.delete("/{message_id}/")
 async def delete_message(
     message_id: str,
     session: AsyncSession = Depends(get_session),
