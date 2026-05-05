@@ -84,6 +84,14 @@ class Message(SQLModel, table=True):
     __table_args__ = (Index("idx_messages_created_at", "channel_id", "created_at"),)
 
 
+class AttachmentResponse(BaseModel):
+    id: str
+    url: str
+    file_type: str
+    file_size: int
+    created_at: datetime
+
+
 class ChatMessageResponse(BaseModel):
     id: int
     channel_id: str
@@ -97,6 +105,7 @@ class ChatMessageResponse(BaseModel):
     reply_to_id: Optional[int]
     is_deleted: bool
     created_at: datetime
+    attachments: list[AttachmentResponse] = []
 
 
 class Attachment(SQLModel, table=True):
@@ -107,7 +116,7 @@ class Attachment(SQLModel, table=True):
     url: str
     file_type: str
     file_size: int
-    created_at: Optional[datetime] = Field(
+    created_at: datetime = Field(
         default=None, sa_column_kwargs={"server_default": text("CURRENT_TIMESTAMP")}
     )
 

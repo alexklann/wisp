@@ -8,7 +8,15 @@ from sqlmodel import col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from database import get_session
-from models import Channel, ChatMessageResponse, Message, ServerMember, User
+from models import (
+    Attachment,
+    AttachmentResponse,
+    Channel,
+    ChatMessageResponse,
+    Message,
+    ServerMember,
+    User,
+)
 from routes.auth import get_current_user_id
 
 router = APIRouter()
@@ -88,7 +96,32 @@ async def get_messages(
                 reply_to_id=db_message.reply_to_id,
                 is_deleted=bool(db_message.is_deleted),
                 created_at=db_message.created_at,
+                attachments=[],
             )
         )
+
+    if messages_with_users:
+        message_ids = [m.id for m in messages_with_users]
+        statement = select(Attachment).where(
+            col(Attachment.message_id).in_(message_ids)
+        )
+        result = await session.exec(statement)
+
+        attachments_map: dict[int, list[Attachment]] = {}
+        for attachment in result:
+            attachments_map.setdefault(attachment.message_id, []).append(attachment)
+
+        for msg in messages_with_users:
+            attachments = attachments_map.get(msg.id, [])
+            msg.attachments = [
+                AttachmentResponse(
+                    id=a.id,
+                    url=a.url,
+                    file_type=a.file_type,
+                    file_size=a.file_size,
+                    created_at=a.created_at,
+                )
+                for a in attachments
+            ]
 
     return messages_with_users

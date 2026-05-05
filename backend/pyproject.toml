@@ -9,6 +9,8 @@ dependencies = [
     "bcrypt>=5.0.0",
     "fastapi[standard]>=0.135.2",
     "greenlet>=3.3.2",
+    "pillow>=12.2.0",
     "pyjwt>=2.12.1",
+    "python-multipart>=0.0.22",
     "sqlmodel>=0.0.37",
 ]
