@@ -91,11 +91,16 @@ function createWsStore() {
     socket?.send(JSON.stringify(data));
   }
 
-  function sendMessage(channelId: string, content: string) {
+  function sendMessage(
+    channelId: string,
+    content: string,
+    attachmentIds: string[],
+  ) {
     send({
       type: "sendMessage",
       channel_id: channelId,
       content: content,
+      attachment_ids: attachmentIds,
     });
   }
 

@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Ping(BaseModel):
@@ -11,6 +11,7 @@ class SendMessage(BaseModel):
     type: Literal["sendMessage"]
     channel_id: str
     content: str
+    attachment_ids: list[str] = Field(default_factory=list)
 
 
 class JoinChannel(BaseModel):
