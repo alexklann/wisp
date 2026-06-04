@@ -4,7 +4,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect, status
 from pydantic import TypeAdapter
-from sqlmodel import col, select
+from sqlmodel import col, select, update
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from core.app_state import AppState
@@ -12,7 +12,15 @@ from core.client_event import ClientEvent, JoinChannel, Ping, SendMessage, Typin
 from core.connection_manager import ConnectionManager, get_connection_manager
 from core.jwt import verify_jwt
 from database import get_session
-from models import Channel, ChatMessageResponse, Message, ServerMember, User
+from models import (
+    Attachment,
+    AttachmentResponse,
+    Channel,
+    ChatMessageResponse,
+    Message,
+    ServerMember,
+    User,
+)
 
 router = APIRouter()
 
@@ -30,11 +38,21 @@ async def process_send_message(
         sender_id=user_id,
         content=event.content,
         message_type="text",
-        # attachment_ids=event.attachment_ids (To be implemented)
     )
     session.add(new_message)
     await session.commit()
     await session.refresh(new_message)
+
+    if event.attachment_ids:
+        statement = (
+            update(Attachment)
+            .where(col(Attachment.id).in_(event.attachment_ids))
+            .where(col(Attachment.uploader_id) == user_id)
+            .where(col(Attachment.message_id).is_(None))
+            .values(message_id=new_message.id)
+        )
+        await session.exec(statement)
+        await session.commit()
 
     statement = (
         select(Message, User)
@@ -42,18 +60,18 @@ async def process_send_message(
         .join(User, col(Message.sender_id) == User.id)
     )
     result = await session.exec(statement)
-    full_message = result.first()
+    msg, user = result.one()
 
-    if full_message is None:
-        print(f"Message {new_message.id} was not found after initialization")
-        return
+    att_stmt = select(Attachment).where(col(Attachment.message_id) == msg.id)
+    att_results = await session.exec(att_stmt)
+    linked_attachments = att_results.all()
 
-    msg, user = full_message
     response = ChatMessageResponse(
         **msg.model_dump(),
         sender_username=user.username,
         sender_display_name=user.display_name,
         sender_avatar_url=user.avatar_url,
+        attachments=[AttachmentResponse(**a.model_dump()) for a in linked_attachments],
     )
 
     await manager.broadcast(
@@ -128,6 +146,7 @@ async def handle_event(
     active_channel_id: list[Optional[str]],
     session: AsyncSession,
 ) -> None:
+    print(f"Receiving: {event} from {user_id} on {active_channel_id}")
     match event:
         case Ping():
             await websocket.send_text("Pong")

@@ -12,6 +12,7 @@
     let typingTimeout: ReturnType<typeof setTimeout> | undefined;
 
     let imageFileInput: HTMLInputElement | null = null;
+    let uploadedAttachments: string[] = $state([]);
 
     function autoResize() {
         if (!textareaObject) return;
@@ -47,19 +48,33 @@
     async function attachmentInputChanged(event: Event) {
         const input = event.target as HTMLInputElement;
         if (input.files) {
-            // TODO: Find a way to get a message id in here
-            for (const file in input.files) {
-                const response = await apiFetch("/upload/", {
-                    method: "POST",
-                    body: JSON.stringify({
-                        file: file,
-                        message_id: "",
-                    }),
-                });
+            for (const file of Array.from(input.files)) {
+                const formData = new FormData();
+                formData.append("file", file);
+                try {
+                    const response = await apiFetch("/upload/", {
+                        method: "POST",
+                        body: formData,
+                    });
 
-                const responseBody = await response.json();
-                console.log(file);
-                console.log(responseBody);
+                    if (!response.ok) {
+                        console.error("Upload failed status:", response.status);
+                        continue;
+                    }
+
+                    const responseBody = await response.json();
+
+                    uploadedAttachments = [
+                        ...uploadedAttachments,
+                        responseBody.id,
+                    ];
+                    console.log("Uploaded file ID:", responseBody.id);
+                } catch (err) {
+                    console.error(
+                        "Network or parsing error during upload:",
+                        err,
+                    );
+                }
             }
         }
     }
@@ -67,9 +82,17 @@
     function sendMessage() {
         if (!uiState.selectedChannel) return;
         if (messageInput.trim().length === 0) return;
-        WsStore.sendMessage(uiState.selectedChannel, messageInput, []);
+        console.log(
+            `Sending message: ${messageInput} with ${uploadedAttachments.length} attachments to ${uiState.selectedChannel}`,
+        );
+        WsStore.sendMessage(
+            uiState.selectedChannel,
+            messageInput,
+            uploadedAttachments,
+        );
         flushSync(() => {
             messageInput = "";
+            uploadedAttachments = [];
         });
         autoResize();
     }
@@ -81,6 +104,7 @@
         class="hidden"
         bind:this={imageFileInput}
         type="file"
+        multiple={false}
     />
     <button
         onclick={attachmentButtonClicked}

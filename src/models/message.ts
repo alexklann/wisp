@@ -1,3 +1,11 @@
+export interface Attachment {
+  id: string;
+  url: string;
+  file_type: string;
+  file_size: number;
+  created_at: string;
+}
+
 export default interface Message {
   type: "message";
   id: number;
@@ -9,7 +17,8 @@ export default interface Message {
   content: string | null;
   message_type: string;
   edited_at: string | null;
-  reply_to_id: string | null;
-  is_deleted: number;
+  reply_to_id: number | null;
+  is_deleted: boolean;
   created_at: string;
+  attachments?: Attachment[];
 }

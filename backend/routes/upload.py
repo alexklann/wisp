@@ -3,12 +3,12 @@ import io
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from PIL import Image, UnidentifiedImageError
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from database import get_session
-from models import Attachment, Message
+from models import Attachment
 from routes.auth import get_current_user_id
 
 IMAGE_UPLOAD_DIR = Path("uploads/image")
@@ -98,7 +98,6 @@ def _process_and_save_image(
 @router.post("/")
 async def upload(
     file: UploadFile = File(...),
-    message_id: int = Form(...),
     session: AsyncSession = Depends(get_session),
     user_id: str = Depends(get_current_user_id),
 ):
@@ -108,18 +107,6 @@ async def upload(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Content-Type header is required",
-        )
-
-    message = await session.get(Message, message_id)
-    if message is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Message not found",
-        )
-    if message.sender_id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only attach files to your own messages",
         )
 
     is_image = content_type in IMAGE_MIME_TYPES
@@ -151,7 +138,8 @@ async def upload(
 
         attachment = Attachment(
             id=file_id,
-            message_id=message_id,
+            message_id=None,
+            uploader_id=user_id,
             url=f"/uploads/image/{filename}",
             file_type=content_type,
             file_size=file_size,

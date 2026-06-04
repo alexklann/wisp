@@ -7,7 +7,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 from sqlalchemy import Index, text
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 
 
 class User(SQLModel, table=True):
@@ -81,6 +81,7 @@ class Message(SQLModel, table=True):
         default=None, sa_column_kwargs={"server_default": text("CURRENT_TIMESTAMP")}
     )
 
+    attachments: list[Attachment] = Relationship(back_populates="message")
     __table_args__ = (Index("idx_messages_created_at", "channel_id", "created_at"),)
 
 
@@ -112,13 +113,16 @@ class Attachment(SQLModel, table=True):
     __tablename__ = "attachments"  # type: ignore
 
     id: str = Field(primary_key=True)
-    message_id: int = Field(foreign_key="messages.id")
+    message_id: Optional[int] = Field(foreign_key="messages.id", default=None)
+    uploader_id: str = Field(foreign_key="users.id")
     url: str
     file_type: str
     file_size: int
     created_at: datetime = Field(
         default=None, sa_column_kwargs={"server_default": text("CURRENT_TIMESTAMP")}
     )
+
+    message: Optional["Message"] = Relationship(back_populates="attachments")
 
 
 class CustomEmoji(SQLModel, table=True):

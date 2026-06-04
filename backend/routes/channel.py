@@ -109,6 +109,8 @@ async def get_messages(
 
         attachments_map: dict[int, list[Attachment]] = {}
         for attachment in result:
+            if not attachment.message_id:
+                continue
             attachments_map.setdefault(attachment.message_id, []).append(attachment)
 
         for msg in messages_with_users:
