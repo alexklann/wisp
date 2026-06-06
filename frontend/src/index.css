@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+    --color-background: #121212;
+    --color-surface-base: #202020;
+    --color-surface: #242424;
+    --color-stroke: #484848;
+    --color-text: #fcfcfc;
+    --color-brand-pink: #d39aff;
+
+    /* https://github.com/tailwindlabs/tailwindcss/discussions/17634 */
+    --texttrim-both: trim-both; /* --texttrim or --trim or --ttrim or anything */
+    --texttrim-start: trim-start;
+    --texttrim-end: trim-end;
+}
+
+/* https://github.com/tailwindlabs/tailwindcss/discussions/17634 */
+@utility text-trim-* {
+    text-box-trim: --value(--texttrim-*, "none");
+}
+
+/* https://github.com/tailwindlabs/tailwindcss/discussions/17634 */
+@utility text-edge-* {
+    text-box-edge: --value(
+        --textedge-*,
+        "text",
+        "alphabetic",
+        "ideographic",
+        "cap",
+        "ex",
+        [*]
+    );
+}

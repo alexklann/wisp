@@ -200,6 +200,7 @@ async def ws_handler(
         async for text in websocket.iter_text():
             try:
                 event = event_adapter.validate_json(text)
+                print(event)
                 await handle_event(
                     event,
                     websocket,
