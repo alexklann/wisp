@@ -1,28 +1,96 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTyping } from "../hooks/useTyping";
 import { useChatStore } from "../stores/useChatStore";
 import type { Attachment } from "../types/message";
 import type Message from "../types/message";
 import ChatInput from "./ChatInput";
+import CloseIcon from "../icons/CloseIcon";
+import ExternalIcon from "../icons/ExternalIcon";
+import DownloadIcon from "../icons/DownloadIcon";
 
 export default function ChatInterface() {
   const messages = useChatStore((state) => state.messages);
   const activeChannelId = useChatStore((state) => state.activeChannelId);
 
   const [selectedImageURL, setSelectedImageURL] = useState<string | null>(null);
+  const [selectedImageFilename, setSelectedImageFilename] = useState<
+    string | null
+  >(null);
 
   const { typingUsernames } = useTyping();
+
+  const downloadImage = async () => {
+    try {
+      const response = await fetch(selectedImageURL);
+      if (!response.ok) throw new Error("Network response was not ok");
+
+      const blob = await response.blob();
+      const localUrl = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = localUrl;
+      link.download = selectedImageFilename;
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(localUrl);
+    } catch (error) {
+      console.error("Failed to download image:", error);
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (selectedImageURL === null) return;
+      if (event.key !== "Escape") return;
+
+      setSelectedImageURL(null);
+    };
+
+    window.addEventListener("keypress", (event) => {
+      handleKeyPress(event);
+    });
+    return () => window.removeEventListener("keypress", handleKeyPress);
+  }, [selectedImageURL]);
 
   return (
     <>
       {selectedImageURL !== null && (
         <div
           onClick={() => setSelectedImageURL(null)}
-          className="flex justify-center items-center absolute inset-0 z-90 bg-black/70 p-4"
+          className="flex justify-center items-center absolute inset-0 z-90 bg-black/70 p-64"
         >
+          <div
+            onClick={(event) => event.stopPropagation()}
+            className="flex flex-row gap-2 absolute top-0 right-0 m-4"
+          >
+            <button
+              onClick={() => window.open(selectedImageURL, "_blank").focus()}
+              title="Open in external tab"
+              className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
+            >
+              <ExternalIcon className="text-text" />
+            </button>
+            <button
+              onClick={() => downloadImage()}
+              title="Download image"
+              className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
+            >
+              <DownloadIcon className="text-text" />
+            </button>
+            <button
+              onClick={() => setSelectedImageURL(null)}
+              className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
+            >
+              <CloseIcon className="text-text" />
+            </button>
+          </div>
           <img
             onClick={(event) => event.stopPropagation()}
-            className="h-full p-16"
+            className="h-full"
+            style={{ aspectRatio: "keep" }}
             src={selectedImageURL}
           />
         </div>
@@ -56,12 +124,14 @@ export default function ChatInterface() {
                   {message.attachments.length > 0 &&
                     message.attachments.map((attachment: Attachment) => (
                       <img
+                        onSelect={(event) => event.preventDefault()}
                         key={`image_${attachment.id}`}
-                        onClick={() =>
+                        onClick={() => {
                           setSelectedImageURL(
                             `${import.meta.env.VITE_BACKEND_URL}${attachment.url}`,
-                          )
-                        }
+                          );
+                          setSelectedImageFilename(attachment.id);
+                        }}
                         className="max-w-48 cursor-pointer rounded-lg"
                         src={`${import.meta.env.VITE_BACKEND_URL}${attachment.url}`}
                       />

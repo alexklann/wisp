@@ -14,7 +14,8 @@ app.include_router(server.router, prefix="/servers", tags=["Server Endpoints"])
 app.include_router(upload.router, prefix="/upload", tags=["Upload Endpoints"])
 app.include_router(ws.router)
 
-origins = os.getenv("FRONTEND_CORS_ORIGINS", "").split(",")
+raw_origins = os.getenv("FRONTEND_CORS_ORIGINS", "")
+origins = [o.strip().strip('"').strip("'") for o in raw_origins.split(",") if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,7 +25,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+upload_static_app = StaticFiles(directory="uploads")
+
+cors_wrapped_uploads = CORSMiddleware(
+    app=upload_static_app,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
+
+app.mount("/uploads", cors_wrapped_uploads, name="uploads")
 
 
 @app.get("/")
