@@ -4,6 +4,7 @@ export default interface Message {
   sender_id: string;
   sender_username: string;
   sender_display_name: string;
+  sender_avatar_url: string | null;
   content: string | null;
   message_type: string;
   edited_at: string;

@@ -24,7 +24,7 @@ export function uploadFileWithProgress(
 
     xhr.onerror = () => reject(new Error("Network error during upload"));
 
-    xhr.open("POST", `${import.meta.env.VITE_BACKEND_URL}/upload`);
+    xhr.open("POST", `${import.meta.env.VITE_BACKEND_URL}/upload/`);
     xhr.setRequestHeader("Authorization", `Bearer ${token}`);
 
     const formData = new FormData();

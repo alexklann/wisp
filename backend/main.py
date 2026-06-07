@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -12,9 +14,11 @@ app.include_router(server.router, prefix="/servers", tags=["Server Endpoints"])
 app.include_router(upload.router, prefix="/upload", tags=["Upload Endpoints"])
 app.include_router(ws.router)
 
+origins = os.getenv("FRONTEND_CORS_ORIGINS", "").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

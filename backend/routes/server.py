@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
@@ -10,6 +11,8 @@ from starlette.exceptions import HTTPException
 from database import get_session
 from models import Channel, Server, ServerMember, ServerWithMembership
 from routes.auth import get_current_user_id
+
+load_dotenv()
 
 router = APIRouter()
 

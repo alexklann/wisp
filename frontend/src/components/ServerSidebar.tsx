@@ -8,7 +8,6 @@ import { useUIStore } from "../stores/useUIStore";
 
 export default function ServerSidebar() {
   const token = useAuthStore((state) => state.token);
-  const clear = useAuthStore((state) => state.clear);
 
   const { socket } = useWebsocket();
 
@@ -23,6 +22,7 @@ export default function ServerSidebar() {
   const channels = useChatStore((state) => state.channels);
   const setChannels = useChatStore((state) => state.setChannels);
   const setActiveChannel = useChatStore((state) => state.setActiveChannel);
+  const activeChannelId = useChatStore((state) => state.activeChannelId);
 
   const setMessages = useChatStore((state) => state.setMessages);
 
@@ -161,7 +161,7 @@ export default function ServerSidebar() {
                       }),
                     );
                   }}
-                  className="w-full border border-stroke hover:border-brand-pink cursor-pointer rounded-lg p-2"
+                  className={`w-full border hover:border-brand-pink cursor-pointer rounded-lg p-2 ${activeChannelId === channel.id ? "border-brand-pink" : "border-stroke"}`}
                 >
                   <span className="text-sm text-trim-both">{channel.name}</span>
                 </div>
@@ -172,7 +172,9 @@ export default function ServerSidebar() {
           )}
         </div>
       </div>
-      <button onClick={() => clear()}>clear auth data</button>
+      <span className="w-full text-center mt-auto text-sm text-text/20 font-bold">
+        Wisp 260607
+      </span>
     </aside>
   );
 }

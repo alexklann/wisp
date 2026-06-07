@@ -102,7 +102,7 @@ export default function SlateEditor({
           <Editable
             onPaste={onPaste}
             onKeyDown={handleKeyDownEvent}
-            className="p-4 outline-none w-full wrap-break-word"
+            className="p-2 outline-none w-full wrap-break-word"
             placeholder={
               isUploading ? "Uploading attachments..." : "Enter a message..."
             }

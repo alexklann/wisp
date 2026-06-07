@@ -3,6 +3,7 @@ import { useDropzone } from "react-dropzone";
 import SlateEditor from "./SlateEditor";
 import AttachmentDrawer from "./AttachmentDrawer";
 import { useChatInput } from "../hooks/useChatInput";
+import PaperclipIcon from "../icons/PaperclipIcon";
 
 export default function ChatInput() {
   const {
@@ -22,7 +23,7 @@ export default function ChatInput() {
     [setAttachments],
   );
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
     noClick: true,
   });
@@ -47,12 +48,20 @@ export default function ChatInput() {
         uploadProgress={uploadProgress}
       />
 
-      <SlateEditor
-        editor={editor}
-        setAttachments={setAttachments}
-        isUploading={isUploading}
-        sendMessage={sendMessage}
-      />
+      <div className="flex flex-row gap-2 p-2 h-14">
+        <button
+          className="flex items-center justify-center h-full aspect-square hover:bg-white/5 border border-stroke rounded-lg cursor-pointer"
+          onClick={() => open()}
+        >
+          <PaperclipIcon className="text-white w-[75%] aspect-square" />
+        </button>
+        <SlateEditor
+          editor={editor}
+          setAttachments={setAttachments}
+          isUploading={isUploading}
+          sendMessage={sendMessage}
+        />
+      </div>
     </div>
   );
 }
