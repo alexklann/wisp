@@ -9,6 +9,7 @@ import {
 import { useAuthStore } from "../stores/useAuthStore";
 import { useTyping } from "../hooks/useTyping";
 import { useUIStore } from "../stores/useUIStore";
+import { useChatStore } from "../stores/useChatStore";
 
 interface Props {
   editor: BaseEditor & ReactEditor;
@@ -24,7 +25,7 @@ export default function SlateEditor({
   sendMessage,
 }: Props) {
   const { notifyTyping } = useTyping();
-  const setEditingMessageId = useUIStore((state) => state.setEditingMessageId);
+  // const setEditingMessageId = useUIStore((state) => state.setEditingMessageId);
   const user = useAuthStore((state) => state.user);
 
   const onPaste = useCallback(
@@ -63,16 +64,16 @@ export default function SlateEditor({
       if (text.length === 0) {
         event.preventDefault();
 
-        const currentMessages = useMessageStore.getState().messages;
+        const currentMessages = useChatStore.getState().messages;
 
         const userMessages = currentMessages.filter(
-          (m) => m.type === "chat_message" && m.sender.uuid === user?.uuid,
+          (m) => m.sender_id === user.id,
         );
         const lastMessage = userMessages[userMessages.length - 1];
 
-        if (lastMessage && lastMessage.type === "chat_message") {
-          setEditingMessageId(lastMessage.data.message_uuid);
-        }
+        // if (lastMessage) {
+        //   setEditingMessageId(lastMessage.id);
+        // }
       }
       return;
     }

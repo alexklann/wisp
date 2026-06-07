@@ -19,6 +19,7 @@ interface ChatState {
   setActiveChannel: (channelId: string) => void;
 
   addMessage: (message: Message) => void;
+  addChannel: (channel: Channel) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -40,4 +41,6 @@ export const useChatStore = create<ChatState>((set) => ({
     set((state) => ({
       messages: [...state.messages, message],
     })),
+  addChannel: (channel) =>
+    set((state) => ({ channels: [...state.channels, channel] })),
 }));

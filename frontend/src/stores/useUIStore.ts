@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { ModalType } from "../types/ModalType";
 
 interface UIState {
   renderedPage: string | null;
@@ -6,6 +7,10 @@ interface UIState {
 
   editingMessageId: string | null;
   setEditingMessageId: (id: string | null) => void;
+
+  activeModal: ModalType;
+  openModal: (modal: ModalType) => void;
+  closeModal: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -14,4 +19,8 @@ export const useUIStore = create<UIState>((set) => ({
 
   editingMessageId: null,
   setEditingMessageId: (id) => set({ editingMessageId: id }),
+
+  activeModal: null,
+  openModal: (modal) => set({ activeModal: modal }),
+  closeModal: () => set({ activeModal: null }),
 }));
