@@ -32,7 +32,7 @@ export default function App() {
     const serverId = joinServerInput.current.value;
 
     const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/servers/${serverId}/join`,
+      `${import.meta.env.VITE_BACKEND_URL}/servers/${serverId}/join/`,
       {
         method: "GET",
         headers: {
@@ -56,7 +56,7 @@ export default function App() {
     const serverName = createServerInput.current.value;
 
     const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/servers`,
+      `${import.meta.env.VITE_BACKEND_URL}/servers/`,
       {
         method: "POST",
         headers: {
@@ -84,7 +84,7 @@ export default function App() {
     const channelName = createChannelInput.current.value;
 
     const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/servers/${activeServerId}/channels`,
+      `${import.meta.env.VITE_BACKEND_URL}/servers/${activeServerId}/channels/`,
       {
         method: "POST",
         headers: {

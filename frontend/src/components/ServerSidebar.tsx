@@ -34,7 +34,7 @@ export default function ServerSidebar() {
     if (serverFetchStatus === "idle") {
       const fetchServers = async () => {
         const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/servers`,
+          `${import.meta.env.VITE_BACKEND_URL}/servers/`,
           {
             method: "GET",
             headers: {
@@ -58,7 +58,7 @@ export default function ServerSidebar() {
 
   const fetchChannels = async (serverId: string) => {
     const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/servers/${serverId}/channels`,
+      `${import.meta.env.VITE_BACKEND_URL}/servers/${serverId}/channels/`,
       {
         method: "GET",
         headers: {
@@ -78,7 +78,7 @@ export default function ServerSidebar() {
 
   const fetchMessages = async (channelId: string) => {
     const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/channels/${channelId}/messages`,
+      `${import.meta.env.VITE_BACKEND_URL}/channels/${channelId}/messages/`,
       {
         method: "GET",
         headers: {

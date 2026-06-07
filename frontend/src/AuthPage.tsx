@@ -17,7 +17,7 @@ export default function AuthPage() {
     const passwordInput = formData.get("password");
 
     const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/auth/login`,
+      `${import.meta.env.VITE_BACKEND_URL}/auth/login/`,
       {
         method: "POST",
         headers: {
@@ -59,7 +59,7 @@ export default function AuthPage() {
     const passwordInput = formData.get("password");
 
     const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/auth/register`,
+      `${import.meta.env.VITE_BACKEND_URL}/auth/register/`,
       {
         method: "POST",
         headers: {
