@@ -19,5 +19,6 @@ export interface Attachment {
   url: string;
   file_type: string;
   file_size: number;
+  file_name: string;
   created_at: string;
 }

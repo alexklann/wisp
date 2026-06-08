@@ -1,5 +1,6 @@
 import asyncio
 import io
+import mimetypes
 import uuid
 from pathlib import Path
 
@@ -111,27 +112,29 @@ async def upload(
 
     is_image = content_type in IMAGE_MIME_TYPES
 
-    image_bytes = await file.read()
-
     if is_image:
-        if len(image_bytes) > MAX_IMAGE_SIZE:
+        file_bytes = await file.read()
+        if len(file_bytes) > MAX_IMAGE_SIZE:
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                 detail=f"File exceeds maximum size of {MAX_IMAGE_SIZE // (1024 * 1024)} MB",
             )
 
-        _validate_magic_bytes(image_bytes, content_type)
+        _validate_magic_bytes(file_bytes, content_type)
 
         file_id = str(uuid.uuid4())
         filename = f"{file_id}.webp"
         thumb_filename = f"{file_id}_thumb.webp"
+
+        original_filename = file.filename or "unnamed"
+        original_filename = Path(original_filename).name
 
         file_path = IMAGE_UPLOAD_DIR / filename
         thumb_path = IMAGE_UPLOAD_DIR / thumb_filename
 
         file_size, thumb_size = await asyncio.to_thread(
             _process_and_save_image,
-            image_bytes,
+            file_bytes,
             file_path,
             thumb_path,
         )
@@ -143,6 +146,7 @@ async def upload(
             url=f"/uploads/image/{filename}",
             file_type=content_type,
             file_size=file_size,
+            file_name=original_filename,
         )
 
         session.add(attachment)
@@ -158,7 +162,49 @@ async def upload(
             "file_size": attachment.file_size,
         }
     else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Unsupported file type: {content_type}. Only images are supported currently.",
+        if file.size is None or file.size > MAX_FILE_SIZE or file.size == 0:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"File exceeds maximum size of {MAX_FILE_SIZE // (1024 * 1024)} MB or is empty",
+            )
+
+        file_id = str(uuid.uuid4())
+        original_ext = mimetypes.guess_extension(content_type) or ".bin"
+        filename = f"{file_id}{original_ext}"
+        file_path = FILE_UPLOAD_DIR / filename
+
+        original_filename = file.filename or "unnamed"
+        original_filename = Path(original_filename).name
+
+        CHUNK_SIZE = 8 * 1024 * 1024  # 8 MB chunks
+        total_size = 0
+        while True:
+            chunk = await file.read(CHUNK_SIZE)
+            if not chunk:
+                break
+            total_size += len(chunk)
+            with open(file_path, "ab") as f:
+                f.write(chunk)
+
+        file_size = file_path.stat().st_size
+
+        attachment = Attachment(
+            id=file_id,
+            message_id=None,
+            uploader_id=user_id,
+            url=f"/uploads/file/{filename}",
+            file_type=content_type,
+            file_size=file_size,
+            file_name=original_filename,
         )
+
+        session.add(attachment)
+        await session.commit()
+        await session.refresh(attachment)
+
+        return {
+            "id": attachment.id,
+            "url": attachment.url,
+            "file_type": attachment.file_type,
+            "file_size": attachment.file_size,
+        }

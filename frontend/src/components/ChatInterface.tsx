@@ -11,6 +11,7 @@ import Markdown from "react-markdown";
 import rehypeExternalLinks from "rehype-external-links";
 import remarkGfm from "remark-gfm";
 import "../markdown.css";
+import FileIcon from "../icons/FileIcon";
 
 export default function ChatInterface() {
   const messages = useChatStore((state) => state.messages);
@@ -138,20 +139,42 @@ export default function ChatInterface() {
                     </Markdown>
                   </div>
                   {message.attachments.length > 0 &&
-                    message.attachments.map((attachment: Attachment) => (
-                      <img
-                        onSelect={(event) => event.preventDefault()}
-                        key={`image_${attachment.id}`}
-                        onClick={() => {
-                          setSelectedImageURL(
-                            `${import.meta.env.VITE_BACKEND_URL}${attachment.url}`,
-                          );
-                          setSelectedImageFilename(attachment.id);
-                        }}
-                        className="max-w-48 cursor-pointer rounded-lg"
-                        src={`${import.meta.env.VITE_BACKEND_URL}${attachment.url}`}
-                      />
-                    ))}
+                    message.attachments.map((attachment: Attachment) =>
+                      attachment.file_type.startsWith("image/") ? (
+                        <img
+                          onSelect={(event) => event.preventDefault()}
+                          key={`image_${attachment.id}`}
+                          onClick={() => {
+                            setSelectedImageURL(
+                              `${import.meta.env.VITE_BACKEND_URL}${attachment.url}`,
+                            );
+                            setSelectedImageFilename(attachment.id);
+                          }}
+                          className="max-w-48 cursor-pointer rounded-lg"
+                          src={`${import.meta.env.VITE_BACKEND_URL}${attachment.url}`}
+                        />
+                      ) : (
+                        <a
+                          href={`${import.meta.env.VITE_BACKEND_URL}/download/${attachment.id}`}
+                          download
+                          target="_blank"
+                          title="Download file"
+                          className="flex flex-row w-96 gap-1 bg-surface hover:bg-white/5 border-2 border-stroke rounded-lg pl-1 pr-4 py-2 cursor-pointer"
+                          key={`file_${attachment.id}`}
+                        >
+                          <FileIcon className="text-text h-12 w-12 object-contain" />
+                          <div className="flex flex-col w-full">
+                            <span className="text-brand-pink truncate w-full decoration-0">
+                              {attachment.file_name}
+                            </span>
+                            <span className="decoration-0 text-text font-normal text-sm">
+                              {(attachment.file_size / 1000 / 1000).toFixed(2)}
+                              MB
+                            </span>
+                          </div>
+                        </a>
+                      ),
+                    )}
                 </div>
               </div>
             ))

@@ -121,6 +121,7 @@ async def get_messages(
                     url=a.url,
                     file_type=a.file_type,
                     file_size=a.file_size,
+                    file_name=a.file_name,
                     created_at=a.created_at,
                 )
                 for a in attachments

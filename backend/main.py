@@ -1,9 +1,15 @@
 import os
+from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
+from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlmodel.ext.asyncio.session import AsyncSession
+from starlette.responses import FileResponse
 
+from database import get_session
+from models import Attachment
 from routes import auth, channel, server, upload, ws
 
 app = FastAPI()
@@ -46,3 +52,23 @@ def read_root():
 @app.get("/health")
 def get_health():
     return "Healthy"
+
+
+@app.get("/download/{attachment_id}")
+async def download_attachment(
+    attachment_id: str,
+    session: AsyncSession = Depends(get_session),
+):
+    attachment = await session.get(Attachment, attachment_id)
+    if not attachment:
+        raise HTTPException(status_code=404, detail="Attachment not found")
+
+    file_path = Path(attachment.url.lstrip("/"))
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found on disk")
+
+    return FileResponse(
+        path=file_path,
+        filename=attachment.file_name,
+        media_type=attachment.file_type,
+    )

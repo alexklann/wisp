@@ -90,6 +90,7 @@ class AttachmentResponse(BaseModel):
     url: str
     file_type: str
     file_size: int
+    file_name: str
     created_at: datetime
 
 
@@ -118,6 +119,7 @@ class Attachment(SQLModel, table=True):
     url: str
     file_type: str
     file_size: int
+    file_name: str
     created_at: datetime = Field(
         default=None, sa_column_kwargs={"server_default": text("CURRENT_TIMESTAMP")}
     )
