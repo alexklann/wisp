@@ -50,12 +50,12 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
           case "message": {
             const messageData = data as Message;
 
-            if (!document.hasFocus() && messageData.sender_id !== user.id) {
+            if (!document.hasFocus() && messageData.sender_id !== user?.id) {
               playNotification();
               Notification.requestPermission().then((perm: string) => {
                 if (perm === "granted") {
                   new Notification(messageData.sender_display_name, {
-                    body: messageData.content,
+                    body: messageData.content ?? "No content",
                   });
                 }
               });
