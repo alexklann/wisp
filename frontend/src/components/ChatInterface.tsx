@@ -7,6 +7,10 @@ import ChatInput from "./ChatInput";
 import CloseIcon from "../icons/CloseIcon";
 import ExternalIcon from "../icons/ExternalIcon";
 import DownloadIcon from "../icons/DownloadIcon";
+import Markdown from "react-markdown";
+import rehypeExternalLinks from "rehype-external-links";
+import remarkGfm from "remark-gfm";
+import "../markdown.css";
 
 export default function ChatInterface() {
   const messages = useChatStore((state) => state.messages);
@@ -21,6 +25,7 @@ export default function ChatInterface() {
 
   const downloadImage = async () => {
     try {
+      if (!selectedImageURL || !selectedImageFilename) return;
       const response = await fetch(selectedImageURL);
       if (!response.ok) throw new Error("Network response was not ok");
 
@@ -60,14 +65,14 @@ export default function ChatInterface() {
       {selectedImageURL !== null && (
         <div
           onClick={() => setSelectedImageURL(null)}
-          className="flex justify-center items-center absolute inset-0 z-90 bg-black/70 p-64"
+          className="flex justify-center items-center absolute inset-0 z-90 bg-black/70 p-12"
         >
           <div
             onClick={(event) => event.stopPropagation()}
             className="flex flex-row gap-2 absolute top-0 right-0 m-4"
           >
             <button
-              onClick={() => window.open(selectedImageURL, "_blank").focus()}
+              onClick={() => window.open(selectedImageURL, "_blank")?.focus()}
               title="Open in external tab"
               className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
             >
@@ -89,8 +94,7 @@ export default function ChatInterface() {
           </div>
           <img
             onClick={(event) => event.stopPropagation()}
-            className="h-full"
-            style={{ aspectRatio: "keep" }}
+            className="max-w-full max-h-full object-contain"
             src={selectedImageURL}
           />
         </div>
@@ -107,7 +111,9 @@ export default function ChatInterface() {
                 key={`message_${message.id}`}
               >
                 <div className="w-12 h-12 bg-white rounded-full overflow-hidden">
-                  <img src={message.sender_avatar_url} />
+                  {message.sender_avatar_url && (
+                    <img src={message.sender_avatar_url} />
+                  )}
                 </div>
                 <div className="flex flex-col gap-2">
                   <div className="flex flex-col">
@@ -119,7 +125,17 @@ export default function ChatInterface() {
                         {new Date(message.created_at).toLocaleString()}
                       </span>
                     </div>
-                    <span>{message.content}</span>
+                    <Markdown
+                      rehypePlugins={[
+                        [
+                          rehypeExternalLinks,
+                          { target: "_blank", rel: ["noreferrer"] },
+                        ],
+                      ]}
+                      remarkPlugins={[remarkGfm]}
+                    >
+                      {message.content}
+                    </Markdown>
                   </div>
                   {message.attachments.length > 0 &&
                     message.attachments.map((attachment: Attachment) => (

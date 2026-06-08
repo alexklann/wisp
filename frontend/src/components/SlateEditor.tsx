@@ -1,4 +1,4 @@
-import { Node, type BaseEditor } from "slate";
+import { type BaseEditor } from "slate";
 import { Slate, Editable, ReactEditor } from "slate-react";
 import {
   useCallback,
@@ -6,10 +6,7 @@ import {
   type KeyboardEvent,
   type SetStateAction,
 } from "react";
-import { useAuthStore } from "../stores/useAuthStore";
 import { useTyping } from "../hooks/useTyping";
-import { useUIStore } from "../stores/useUIStore";
-import { useChatStore } from "../stores/useChatStore";
 
 interface Props {
   editor: BaseEditor & ReactEditor;
@@ -25,8 +22,6 @@ export default function SlateEditor({
   sendMessage,
 }: Props) {
   const { notifyTyping } = useTyping();
-  // const setEditingMessageId = useUIStore((state) => state.setEditingMessageId);
-  const user = useAuthStore((state) => state.user);
 
   const onPaste = useCallback(
     (event: React.ClipboardEvent<HTMLDivElement>) => {
@@ -57,30 +52,10 @@ export default function SlateEditor({
       event.preventDefault();
       editor.insertText("\n");
     }
-
-    if (event.key === "ArrowUp") {
-      const text = Node.string(editor);
-
-      if (text.length === 0) {
-        event.preventDefault();
-
-        const currentMessages = useChatStore.getState().messages;
-
-        const userMessages = currentMessages.filter(
-          (m) => m.sender_id === user.id,
-        );
-        const lastMessage = userMessages[userMessages.length - 1];
-
-        // if (lastMessage) {
-        //   setEditingMessageId(lastMessage.id);
-        // }
-      }
-      return;
-    }
   };
 
   return (
-    <div className="flex flex-row items-center gap-2 pr-4 w-full">
+    <div className="flex flex-row items-center gap-2 pr-4 w-full max-h-48 overflow-y-auto">
       <div className="flex-1 min-w-0">
         <Slate
           editor={editor}

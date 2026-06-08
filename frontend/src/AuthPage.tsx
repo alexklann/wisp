@@ -96,6 +96,7 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (authState === "success") {
+      if (!userData || !userToken) return;
       save(userData, userToken);
     }
   }, [authState, userData, userToken, save]);

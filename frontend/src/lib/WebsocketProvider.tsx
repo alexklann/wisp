@@ -10,10 +10,16 @@ import type { WebsocketMessage } from "../types/WebsocketMessage";
 import { useAuthStore } from "../stores/useAuthStore";
 import type Message from "../types/message";
 import { useChatStore } from "../stores/useChatStore";
+import NotificationSound from "../notification.mp3";
+import useSound from "use-sound";
 
 export function WebsocketProvider({ children }: { children: ReactNode }) {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
+
+  const [playNotification] = useSound(NotificationSound);
+
+  const user = useAuthStore((state) => state.user);
 
   const addMessage = useChatStore((state) => state.addMessage);
 
@@ -28,32 +34,39 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const connect = () => {
-      console.log("Connecting to Server with Websocket");
       const ws = new WebSocket(
         `${import.meta.env.VITE_BACKEND_URL}/ws?token=${token}`,
       );
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log("Successfully connected to server");
         setSocket(ws);
       };
 
       ws.onmessage = (event) => {
-        console.log("Received websocket message from server");
         const data = JSON.parse(event.data);
-        console.log(data);
         subscribers.current.forEach((callback) => callback(data));
         switch (data.type) {
           case "message": {
             const messageData = data as Message;
+
+            if (!document.hasFocus() && messageData.sender_id !== user.id) {
+              playNotification();
+              Notification.requestPermission().then((perm: string) => {
+                if (perm === "granted") {
+                  new Notification(messageData.sender_display_name, {
+                    body: messageData.content,
+                  });
+                }
+              });
+            }
+
             addMessage(messageData);
           }
         }
       };
 
       ws.onclose = () => {
-        console.log("Closing websocket connection");
         setSocket(null);
       };
 

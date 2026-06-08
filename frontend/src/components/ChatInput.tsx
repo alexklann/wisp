@@ -48,9 +48,9 @@ export default function ChatInput() {
         uploadProgress={uploadProgress}
       />
 
-      <div className="flex flex-row gap-2 p-2 h-14">
+      <div className="flex flex-row gap-2 p-2">
         <button
-          className="flex items-center justify-center h-full aspect-square hover:bg-white/5 border border-stroke rounded-lg cursor-pointer"
+          className="flex items-center justify-center h-10 aspect-square hover:bg-white/5 border border-stroke rounded-lg cursor-pointer"
           onClick={() => open()}
         >
           <PaperclipIcon className="text-white w-[75%] aspect-square" />

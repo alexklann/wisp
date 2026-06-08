@@ -8,7 +8,7 @@ interface UIState {
   editingMessageId: string | null;
   setEditingMessageId: (id: string | null) => void;
 
-  activeModal: ModalType;
+  activeModal: ModalType | null;
   openModal: (modal: ModalType) => void;
   closeModal: () => void;
 }

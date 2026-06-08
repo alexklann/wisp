@@ -96,7 +96,7 @@ export default function ServerSidebar() {
   };
 
   return (
-    <aside className="flex flex-col gap-4 bg-surface-base text-text h-full min-w-64 border p-3 border-stroke rounded-xl">
+    <aside className="flex flex-col gap-2 bg-surface-base text-text h-full min-w-64 border p-3 border-stroke rounded-xl">
       <div className="w-full">
         <div className="flex flex-row gap-2 p-2 w-full items-center justify-between">
           <span className="text-xs text-white/75 font-medium">Servers</span>
@@ -152,8 +152,11 @@ export default function ServerSidebar() {
                 <div
                   key={`server_${channel.id}`}
                   onClick={() => {
+                    if (socket === null) return;
+
                     fetchMessages(channel.id);
                     setActiveChannel(channel.id);
+
                     socket.send(
                       JSON.stringify({
                         type: "joinChannel",
@@ -173,7 +176,7 @@ export default function ServerSidebar() {
         </div>
       </div>
       <span className="w-full text-center mt-auto text-sm text-text/20 font-bold">
-        Wisp 260607
+        Wisp 260608-01
       </span>
     </aside>
   );

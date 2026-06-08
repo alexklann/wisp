@@ -9,7 +9,6 @@ import { useChatStore } from "../stores/useChatStore";
 export function useChatInput() {
   const { socket } = useWebsocket();
   const [editor] = useState(() => withReact(createEditor()));
-
   const activeChannelId = useChatStore((state) => state.activeChannelId);
 
   const user = useAuthStore((state) => state.user);
