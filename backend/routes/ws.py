@@ -8,7 +8,13 @@ from sqlmodel import col, select, update
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from core.app_state import AppState
-from core.client_event import ClientEvent, JoinChannel, Ping, SendMessage, TypingStart
+from core.client_event import (
+    ClientEvent,
+    JoinChannel,
+    Ping,
+    SendMessage,
+    TypingStart,
+)
 from core.connection_manager import ConnectionManager, get_connection_manager
 from core.jwt import verify_jwt
 from database import get_session

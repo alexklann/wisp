@@ -12,9 +12,15 @@ import rehypeExternalLinks from "rehype-external-links";
 import remarkGfm from "remark-gfm";
 import "../markdown.css";
 import FileIcon from "../icons/FileIcon";
+import { useAuthStore } from "../stores/useAuthStore";
+import TrashIcon from "../icons/TrashIcon";
 
 export default function ChatInterface() {
+  const token = useAuthStore((store) => store.token);
+  const user = useAuthStore((store) => store.user);
+
   const messages = useChatStore((state) => state.messages);
+  const deleteMessageStorage = useChatStore((state) => state.deleteMessage);
   const activeChannelId = useChatStore((state) => state.activeChannelId);
 
   const [selectedImageURL, setSelectedImageURL] = useState<string | null>(null);
@@ -44,6 +50,24 @@ export default function ChatInterface() {
       URL.revokeObjectURL(localUrl);
     } catch (error) {
       console.error("Failed to download image:", error);
+    }
+  };
+
+  const deleteMessage = async (messageId: number) => {
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/messages/${messageId}/`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    if (response.ok) {
+      deleteMessageStorage(messageId);
+    } else {
+      console.log("Failed to delete message");
     }
   };
 
@@ -108,9 +132,20 @@ export default function ChatInterface() {
           {messages && messages.length > 0 ? (
             [...messages].reverse().map((message: Message) => (
               <div
-                className="flex flex-row gap-4 p-2 rounded-lg border-2 border-transparent hover:border-brand-pink hover:bg-surface"
+                className="group relative flex flex-row gap-4 p-2 rounded-lg border-2 border-transparent hover:border-brand-pink hover:bg-surface"
                 key={`message_${message.id}`}
               >
+                <div className="absolute top-0 right-0 hidden group-hover:block -translate-y-5 -translate-x-2">
+                  {user && message.sender_id == user.id && (
+                    <button
+                      title="Delete Message"
+                      className="flex items-center justify-center h-10 aspect-square bg-surface hover:bg-red-400 border border-stroke rounded-lg cursor-pointer"
+                      onClick={() => deleteMessage(message.id)}
+                    >
+                      <TrashIcon className="text-text w-[75%] aspect-square" />
+                    </button>
+                  )}
+                </div>
                 <div className="w-12 h-12 bg-white rounded-full overflow-hidden">
                   {message.sender_avatar_url && (
                     <img src={message.sender_avatar_url} />

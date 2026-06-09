@@ -22,6 +22,7 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
   const user = useAuthStore((state) => state.user);
 
   const addMessage = useChatStore((state) => state.addMessage);
+  const deleteMessage = useChatStore((state) => state.deleteMessage);
 
   const token = useAuthStore((store) => store.token);
 
@@ -54,14 +55,25 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
               playNotification();
               Notification.requestPermission().then((perm: string) => {
                 if (perm === "granted") {
-                  new Notification(messageData.sender_display_name, {
-                    body: messageData.content ?? "No content",
-                  });
+                  const notification = new Notification(
+                    messageData.sender_display_name,
+                    {
+                      body: messageData.content ?? "No content",
+                    },
+                  );
+
+                  setTimeout(() => {
+                    notification.close();
+                  }, 4000);
                 }
               });
             }
 
             addMessage(messageData);
+            break;
+          }
+          case "message_deleted": {
+            deleteMessage(data.message_id);
           }
         }
       };

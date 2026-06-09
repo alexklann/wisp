@@ -10,7 +10,7 @@ from starlette.responses import FileResponse
 
 from database import get_session
 from models import Attachment
-from routes import auth, channel, server, upload, ws
+from routes import auth, channel, messages, server, upload, ws
 
 app = FastAPI()
 
@@ -18,6 +18,7 @@ app.include_router(auth.router, prefix="/auth", tags=["Auth Endpoints"])
 app.include_router(channel.router, prefix="/channels", tags=["Channel Endpoints"])
 app.include_router(server.router, prefix="/servers", tags=["Server Endpoints"])
 app.include_router(upload.router, prefix="/upload", tags=["Upload Endpoints"])
+app.include_router(messages.router, prefix="/messages", tags=["Messages Endpoint"])
 app.include_router(ws.router)
 
 raw_origins = os.getenv("FRONTEND_CORS_ORIGINS", "")
