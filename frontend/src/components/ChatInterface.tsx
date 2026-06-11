@@ -14,6 +14,9 @@ import "../markdown.css";
 import FileIcon from "../icons/FileIcon";
 import { useAuthStore } from "../stores/useAuthStore";
 import TrashIcon from "../icons/TrashIcon";
+import { useUIStore } from "../stores/useUIStore";
+import InlineMessageEditor from "./InlineMessageEditor";
+import EditIcon from "../icons/EditIcon";
 
 export default function ChatInterface() {
   const token = useAuthStore((store) => store.token);
@@ -22,6 +25,9 @@ export default function ChatInterface() {
   const messages = useChatStore((state) => state.messages);
   const deleteMessageStorage = useChatStore((state) => state.deleteMessage);
   const activeChannelId = useChatStore((state) => state.activeChannelId);
+
+  const editingMessageId = useUIStore((state) => state.editingMessageId);
+  const setEditingMessageId = useUIStore((state) => state.setEditingMessageId);
 
   const [selectedImageURL, setSelectedImageURL] = useState<string | null>(null);
   const [selectedImageFilename, setSelectedImageFilename] = useState<
@@ -135,15 +141,28 @@ export default function ChatInterface() {
                 className="group relative flex flex-row gap-4 p-2 rounded-lg border-2 border-transparent hover:border-brand-pink hover:bg-surface"
                 key={`message_${message.id}`}
               >
-                <div className="absolute top-0 right-0 hidden group-hover:block -translate-y-5 -translate-x-2">
+                <div className="flex-row gap-1 absolute top-0 right-0 hidden group-hover:flex -translate-y-5 -translate-x-2">
                   {user && message.sender_id == user.id && (
-                    <button
-                      title="Delete Message"
-                      className="flex items-center justify-center h-10 aspect-square bg-surface hover:bg-red-400 border border-stroke rounded-lg cursor-pointer"
-                      onClick={() => deleteMessage(message.id)}
-                    >
-                      <TrashIcon className="text-text w-[75%] aspect-square" />
-                    </button>
+                    <>
+                      <button
+                        title="Edit Message"
+                        className="flex items-center justify-center h-10 aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
+                        onClick={() =>
+                          editingMessageId === message.id
+                            ? setEditingMessageId(null)
+                            : setEditingMessageId(message.id)
+                        }
+                      >
+                        <EditIcon className="text-text w-[75%] aspect-square" />
+                      </button>
+                      <button
+                        title="Delete Message"
+                        className="flex items-center justify-center h-10 aspect-square bg-surface-base hover:bg-red-400 border border-stroke rounded-lg cursor-pointer"
+                        onClick={() => deleteMessage(message.id)}
+                      >
+                        <TrashIcon className="text-text w-[75%] aspect-square" />
+                      </button>
+                    </>
                   )}
                 </div>
                 <div className="w-12 h-12 bg-white rounded-full overflow-hidden">
@@ -161,17 +180,24 @@ export default function ChatInterface() {
                         {new Date(message.created_at).toLocaleString()}
                       </span>
                     </div>
-                    <Markdown
-                      rehypePlugins={[
-                        [
-                          rehypeExternalLinks,
-                          { target: "_blank", rel: ["noreferrer"] },
-                        ],
-                      ]}
-                      remarkPlugins={[remarkGfm]}
-                    >
-                      {message.content}
-                    </Markdown>
+                    {editingMessageId !== message.id ? (
+                      <Markdown
+                        rehypePlugins={[
+                          [
+                            rehypeExternalLinks,
+                            { target: "_blank", rel: ["noreferrer"] },
+                          ],
+                        ]}
+                        remarkPlugins={[remarkGfm]}
+                      >
+                        {message.content}
+                      </Markdown>
+                    ) : (
+                      <InlineMessageEditor
+                        messageUUID={message.id}
+                        initialMessage={message.content ?? ""}
+                      />
+                    )}
                   </div>
                   {message.attachments.length > 0 &&
                     message.attachments.map((attachment: Attachment) =>

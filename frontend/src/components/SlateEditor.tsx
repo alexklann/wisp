@@ -1,4 +1,4 @@
-import { type BaseEditor } from "slate";
+import { Node, type BaseEditor } from "slate";
 import { Slate, Editable, ReactEditor } from "slate-react";
 import {
   useCallback,
@@ -7,6 +7,9 @@ import {
   type SetStateAction,
 } from "react";
 import { useTyping } from "../hooks/useTyping";
+import { useChatStore } from "../stores/useChatStore";
+import { useAuthStore } from "../stores/useAuthStore";
+import { useUIStore } from "../stores/useUIStore";
 
 interface Props {
   editor: BaseEditor & ReactEditor;
@@ -21,6 +24,10 @@ export default function SlateEditor({
   isUploading,
   sendMessage,
 }: Props) {
+  const user = useAuthStore((state) => state.user);
+
+  const setEditingMessageId = useUIStore((state) => state.setEditingMessageId);
+
   const { notifyTyping } = useTyping();
 
   const onPaste = useCallback(
@@ -51,6 +58,28 @@ export default function SlateEditor({
     } else if (event.key === "Enter" && event.shiftKey) {
       event.preventDefault();
       editor.insertText("\n");
+    }
+
+    if (event.key === "ArrowUp") {
+      const text = Node.string(editor);
+
+      if (text.length === 0) {
+        event.preventDefault();
+
+        if (!user) return;
+
+        const currentMessages = useChatStore.getState().messages;
+
+        const userMessages = currentMessages.filter(
+          (m) => m.sender_id === user.id,
+        );
+        const lastMessage = userMessages[userMessages.length - 1];
+
+        if (lastMessage) {
+          setEditingMessageId(lastMessage.id);
+        }
+      }
+      return;
     }
   };
 

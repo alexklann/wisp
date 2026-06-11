@@ -5,8 +5,8 @@ interface UIState {
   renderedPage: string | null;
   changePage: (page: string) => void;
 
-  editingMessageId: string | null;
-  setEditingMessageId: (id: string | null) => void;
+  editingMessageId: number | null;
+  setEditingMessageId: (id: number | null) => void;
 
   activeModal: ModalType | null;
   openModal: (modal: ModalType) => void;

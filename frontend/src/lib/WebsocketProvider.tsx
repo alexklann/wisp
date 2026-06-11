@@ -23,6 +23,7 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
 
   const addMessage = useChatStore((state) => state.addMessage);
   const deleteMessage = useChatStore((state) => state.deleteMessage);
+  const editMessage = useChatStore((state) => state.editMessage);
 
   const token = useAuthStore((store) => store.token);
 
@@ -74,6 +75,11 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
           }
           case "message_deleted": {
             deleteMessage(data.message_id);
+            break;
+          }
+          case "message_edited": {
+            editMessage(data.message_id, data.message_content);
+            break;
           }
         }
       };
