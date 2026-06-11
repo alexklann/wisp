@@ -176,7 +176,7 @@ export default function ServerSidebar() {
         </div>
       </div>
       <span className="w-full text-center mt-auto text-sm text-text/20 font-bold">
-        Wisp 260608-01
+        Wisp 260611-02
       </span>
     </aside>
   );

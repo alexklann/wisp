@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 from pydantic.main import BaseModel
@@ -43,6 +45,7 @@ async def edit_message(
 
     channel_id = message.channel_id
     message.content = requestBody.content
+    message.edited_at = datetime.now()
     session.add(message)
     await session.commit()
     await session.refresh(message)

@@ -54,7 +54,9 @@ export const useChatStore = create<ChatState>((set) => ({
   editMessage: (messageId, content) =>
     set((state) => ({
       messages: state.messages.map((msg) =>
-        msg.id === messageId ? { ...msg, content: content } : msg,
+        msg.id === messageId
+          ? { ...msg, content: content, edited_at: Date.now() }
+          : msg,
       ),
     })),
 }));

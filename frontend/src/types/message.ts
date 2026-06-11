@@ -7,10 +7,10 @@ export default interface Message {
   sender_avatar_url: string | null;
   content: string | null;
   message_type: string;
-  edited_at: string;
+  edited_at: number;
   reply_to_id: string | null;
   is_deleted: number;
-  created_at: string;
+  created_at: number;
   attachments: Attachment[];
 }
 
