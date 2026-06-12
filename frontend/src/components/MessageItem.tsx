@@ -11,6 +11,7 @@ import type { Attachment } from "../types/message";
 import type { Dispatch, SetStateAction } from "react";
 import FileIcon from "../icons/FileIcon";
 import { useChatStore } from "../stores/useChatStore";
+import AudioFileIcon from "../icons/AudioFileIcon";
 
 interface Props {
   message: Message;
@@ -143,6 +144,34 @@ export default function MessageItem({
                   className="max-w-48 cursor-pointer rounded-lg"
                   src={`${import.meta.env.VITE_BACKEND_URL}${attachment.url}`}
                 />
+              ) : attachment.file_type.startsWith("audio/") ? (
+                <div
+                  className="flex flex-row w-96 gap-1 bg-surface border-2 border-stroke rounded-lg pl-1 pr-4 py-2"
+                  key={`file_${attachment.id}`}
+                >
+                  <AudioFileIcon className="text-text h-12 w-12 object-contain" />
+                  <div className="flex flex-col w-full">
+                    <span className="text-brand-pink truncate w-full decoration-0">
+                      {attachment.file_name}
+                    </span>
+                    <span className="decoration-0 text-text font-normal text-sm">
+                      {(attachment.file_size / 1000 / 1000).toFixed(2)}
+                      MB
+                    </span>
+                    <audio
+                      className="w-full"
+                      controls
+                      src={`${import.meta.env.VITE_BACKEND_URL}${attachment.url}`}
+                    ></audio>
+                  </div>
+                </div>
+              ) : attachment.file_type.startsWith("video/") ? (
+                <video
+                  key={`video_${attachment.id}`}
+                  controls
+                  className="max-w-full w-2xl"
+                  src={`${import.meta.env.VITE_BACKEND_URL}${attachment.url}`}
+                ></video>
               ) : (
                 <a
                   href={`${import.meta.env.VITE_BACKEND_URL}/download/${attachment.id}`}

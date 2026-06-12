@@ -14,13 +14,19 @@ from routes.auth import get_current_user_id
 
 IMAGE_UPLOAD_DIR = Path("uploads/image")
 FILE_UPLOAD_DIR = Path("uploads/file")
+VIDEO_UPLOAD_DIR = Path("uploads/video")
+AUDIO_UPLOAD_DIR = Path("uploads/audio")
 
 # Runs once on module import
 IMAGE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 FILE_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+VIDEO_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+AUDIO_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 MAX_IMAGE_SIZE = 1024 * 1024 * 10  # 10MB
 MAX_FILE_SIZE = 1024 * 1024 * 1000  # 1GB
+MAX_VIDEO_SIZE = 1024 * 1024 * 1000  # 1GB
+MAX_AUDIO_SIZE = 1024 * 1024 * 100  # 100MB
 
 IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"]
 IMAGE_MAGIC_BYTES: dict[str, bytes] = {
@@ -28,6 +34,32 @@ IMAGE_MAGIC_BYTES: dict[str, bytes] = {
     "image/png": b"\x89PNG\r\n\x1a\n",
     "image/webp": b"RIFF",  # WebP starts with RIFF; we do deeper check below
 }
+
+AUDIO_MIME_TYPES = [
+    "audio/mpeg",
+    "audio/wave",
+    "audio/wav",
+    "audio/ogg",
+    "audio/flac",
+    "audio/aac",
+    "audio/mp4",
+    "audio/webm",
+    "audio/opus",
+]
+AUDIO_MAGIC_BYTES: dict[str, bytes] = {
+    "audio/mpeg": b"\x49\x44\x33"
+}  # TODO: Use and fill
+
+VIDEO_MIME_TYPES = [
+    "video/mp4",
+    "video/webm",
+    "video/x-matroska",
+    "video/mkv",
+    "video/x-flv",
+    "video/quicktime",
+]
+
+# TODO: Add video magic bytes
 
 router = APIRouter()
 
@@ -111,6 +143,8 @@ async def upload(
         )
 
     is_image = content_type in IMAGE_MIME_TYPES
+    is_audio = content_type in AUDIO_MIME_TYPES
+    is_video = content_type in VIDEO_MIME_TYPES
 
     if is_image:
         file_bytes = await file.read()
@@ -158,6 +192,100 @@ async def upload(
             "url": attachment.url,
             "thumbnail_url": f"/uploads/image/{thumb_filename}",
             "thumbnail_size": thumb_size,
+            "file_type": attachment.file_type,
+            "file_size": attachment.file_size,
+        }
+    elif is_audio:
+        if file.size is None or file.size > MAX_AUDIO_SIZE or file.size == 0:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"File exceeds maximum size of {MAX_AUDIO_SIZE // (1024 * 1024)} MB or is empty",
+            )
+
+        file_id = str(uuid.uuid4())
+        original_ext = mimetypes.guess_extension(content_type) or ".bin"
+        filename = f"{file_id}{original_ext}"
+        file_path = AUDIO_UPLOAD_DIR / filename
+
+        original_filename = file.filename or "unnamed"
+        original_filename = Path(original_filename).name
+
+        CHUNK_SIZE = 8 * 1024 * 1024  # 8 MB chunks
+        total_size = 0
+        while True:
+            chunk = await file.read(CHUNK_SIZE)
+            if not chunk:
+                break
+            total_size += len(chunk)
+            with open(file_path, "ab") as f:
+                f.write(chunk)
+
+        file_size = file_path.stat().st_size
+
+        attachment = Attachment(
+            id=file_id,
+            message_id=None,
+            uploader_id=user_id,
+            url=f"/uploads/audio/{filename}",
+            file_type=content_type,
+            file_size=file_size,
+            file_name=original_filename,
+        )
+
+        session.add(attachment)
+        await session.commit()
+        await session.refresh(attachment)
+
+        return {
+            "id": attachment.id,
+            "url": attachment.url,
+            "file_type": attachment.file_type,
+            "file_size": attachment.file_size,
+        }
+    elif is_video:
+        if file.size is None or file.size > MAX_VIDEO_SIZE or file.size == 0:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"File exceeds maximum size of {MAX_VIDEO_SIZE // (1024 * 1024)} MB or is empty",
+            )
+
+        file_id = str(uuid.uuid4())
+        original_ext = mimetypes.guess_extension(content_type) or ".bin"
+        filename = f"{file_id}{original_ext}"
+        file_path = VIDEO_UPLOAD_DIR / filename
+
+        original_filename = file.filename or "unnamed"
+        original_filename = Path(original_filename).name
+
+        CHUNK_SIZE = 8 * 1024 * 1024  # 8 MB chunks
+        total_size = 0
+        while True:
+            chunk = await file.read(CHUNK_SIZE)
+            if not chunk:
+                break
+            total_size += len(chunk)
+            with open(file_path, "ab") as f:
+                f.write(chunk)
+
+        file_size = file_path.stat().st_size
+
+        attachment = Attachment(
+            id=file_id,
+            message_id=None,
+            uploader_id=user_id,
+            url=f"/uploads/video/{filename}",
+            file_type=content_type,
+            file_size=file_size,
+            file_name=original_filename,
+        )
+
+        session.add(attachment)
+        await session.commit()
+        await session.refresh(attachment)
+
+        return {
+            "id": attachment.id,
+            "url": attachment.url,
             "file_type": attachment.file_type,
             "file_size": attachment.file_size,
         }
