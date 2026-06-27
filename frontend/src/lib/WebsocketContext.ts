@@ -4,9 +4,11 @@ import type { WebsocketMessage } from "../types/WebsocketMessage";
 export interface WebsocketContextType {
   socket: WebSocket | null;
   subscribe: (callback: (msg: WebsocketMessage) => void) => () => void;
+  attemptCount: number;
 }
 
 export const WebsocketContext = createContext<WebsocketContextType>({
   socket: null,
   subscribe: () => () => {},
+  attemptCount: 0,
 });

@@ -9,12 +9,19 @@ import DownloadIcon from "../icons/DownloadIcon";
 import "../markdown.css";
 import MessageItem from "./MessageItem";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
+import { useUIStore } from "../stores/useUIStore";
+import HamburgerIcon from "../icons/HamburgerIcon";
+import { useWebsocket } from "../hooks/useWebsocket";
 
 const START_INDEX = 1_000_000;
 
 export default function ChatInterface() {
   const messages = useChatStore((state) => state.messages);
   const activeChannelId = useChatStore((state) => state.activeChannelId);
+
+  const { socket, attemptCount } = useWebsocket();
+
+  const setIsSidebarOpen = useUIStore((state) => state.setIsSidebarOpen);
 
   const [selectedImageURL, setSelectedImageURL] = useState<string | null>(null);
   const [selectedImageFilename, setSelectedImageFilename] = useState<
@@ -93,6 +100,21 @@ export default function ChatInterface() {
 
   return (
     <>
+      {socket === null && (
+        <div className="flex justify-center items-center absolute h-screen w-screen inset-0 bg-black/50 z-50">
+          {attemptCount <= 10 ? (
+            <span className="text-center text-white font-bold text-4xl">
+              Connection lost, reconnecting...
+              <br />
+              Attempt: {attemptCount} / 10
+            </span>
+          ) : (
+            <span className="text-white font-bold text-4xl">
+              Failed to reconnect within 10 attempts
+            </span>
+          )}
+        </div>
+      )}
       {selectedImageURL !== null && (
         <div
           onClick={() => setSelectedImageURL(null)}
@@ -134,6 +156,16 @@ export default function ChatInterface() {
         key={activeChannelId}
         className="flex flex-col gap-1 bg-surface-base text-text h-full w-full border p-3 border-stroke rounded-xl"
       >
+        <div className="md:hidden flex flex-row items-center p-2 gap-4 bg-surface w-full rounded-lg border-stroke border-2">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            title="Open in external tab"
+            className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
+          >
+            <HamburgerIcon className="text-text" />
+          </button>
+          <span className="text-lg font-bold">Channel Name</span>
+        </div>
         <div className="flex flex-col h-full overflow-y-auto">
           <Virtuoso
             ref={virtuosoRef}
@@ -145,19 +177,17 @@ export default function ChatInterface() {
             startReached={() =>
               console.log("Start reached; implement loading later!")
             }
-            itemContent={(_index, group) => (
-              <div className="flex flex-col py-2">
-                {group.map((message: Message, idx: number) => (
-                  <MessageItem
-                    key={message.id}
-                    message={message}
-                    setSelectedImageURL={setSelectedImageURL}
-                    setSelectedImageFilename={setSelectedImageFilename}
-                    isConsecutive={idx > 0}
-                  />
-                ))}
-              </div>
-            )}
+            itemContent={(_index, group) =>
+              group.map((message: Message, idx: number) => (
+                <MessageItem
+                  key={message.id}
+                  message={message}
+                  setSelectedImageURL={setSelectedImageURL}
+                  setSelectedImageFilename={setSelectedImageFilename}
+                  isConsecutive={idx > 0}
+                />
+              ))
+            }
           />
           {messages && messages.length == 0 && (
             <div>This channel has no messages yet</div>

@@ -5,6 +5,7 @@ import type Server from "../types/server";
 import type Channel from "../types/channel";
 import { useWebsocket } from "../hooks/useWebsocket";
 import { useUIStore } from "../stores/useUIStore";
+import CloseIcon from "../icons/CloseIcon";
 
 export default function ServerSidebar() {
   const token = useAuthStore((state) => state.token);
@@ -13,6 +14,8 @@ export default function ServerSidebar() {
 
   const [serverFetchStatus, setServerFetchStatus] = useState<string>("idle");
   const [channelFetchStatus, setChannelFetchStatus] = useState<string>("idle");
+
+  const clear = useAuthStore((state) => state.clear);
 
   const servers = useChatStore((state) => state.servers);
   const setServers = useChatStore((state) => state.setServers);
@@ -27,6 +30,8 @@ export default function ServerSidebar() {
   const setMessages = useChatStore((state) => state.setMessages);
 
   const openModal = useUIStore((state) => state.openModal);
+  const isSidebarOpen = useUIStore((state) => state.isSidebarOpen);
+  const setIsSidebarOpen = useUIStore((state) => state.setIsSidebarOpen);
 
   useEffect(() => {
     if (!token) return;
@@ -48,6 +53,10 @@ export default function ServerSidebar() {
           setServers(responseBody);
           setServerFetchStatus("success");
         } else {
+          if (response.status === 401) {
+            clear();
+            location.reload();
+          }
           setServerFetchStatus("error");
         }
       };
@@ -96,8 +105,18 @@ export default function ServerSidebar() {
   };
 
   return (
-    <aside className="flex flex-col gap-2 bg-surface-base text-text h-full min-w-64 border p-3 border-stroke rounded-xl">
+    <aside
+      className={`z-20 fixed m-3 inset-0 md:m-0 md:translate-x-0 left-0 md:relative flex flex-col gap-2 transform transition-transform duration-300 ease-in-out bg-surface-base text-text min-w-64 border p-3 border-stroke rounded-xl ${isSidebarOpen ? "translate-x-0" : "translate-x-[calc(-100%-12px)]"}`}
+    >
       <div className="w-full">
+        <div className="md:hidden bg-surface rounded-lg border-stroke border-2 p-2">
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
+          >
+            <CloseIcon className="text-text" />
+          </button>
+        </div>
         <div className="flex flex-row gap-2 p-2 w-full items-center justify-between">
           <span className="text-xs text-white/75 font-medium">Servers</span>
           <button
@@ -156,6 +175,7 @@ export default function ServerSidebar() {
 
                     fetchMessages(channel.id);
                     setActiveChannel(channel.id);
+                    setIsSidebarOpen(false);
 
                     socket.send(
                       JSON.stringify({

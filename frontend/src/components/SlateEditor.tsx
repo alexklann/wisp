@@ -38,13 +38,10 @@ export default function SlateEditor({
         // Stop Slate from trying to render the image as inline text/HTML
         event.preventDefault();
 
-        // Convert FileList to Array and filter for images
-        const pastedImages = Array.from(files).filter((file) =>
-          file.type.startsWith("image/"),
-        );
+        const pastedFiles = Array.from(files);
 
-        if (pastedImages.length > 0) {
-          setAttachments((prev) => [...prev, ...pastedImages]);
+        if (pastedFiles.length > 0) {
+          setAttachments((prev) => [...prev, ...pastedFiles]);
         }
       }
     },

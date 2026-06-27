@@ -11,6 +11,9 @@ interface UIState {
   activeModal: ModalType | null;
   openModal: (modal: ModalType) => void;
   closeModal: () => void;
+
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (state: boolean) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -23,4 +26,7 @@ export const useUIStore = create<UIState>((set) => ({
   activeModal: null,
   openModal: (modal) => set({ activeModal: modal }),
   closeModal: () => set({ activeModal: null }),
+
+  isSidebarOpen: false,
+  setIsSidebarOpen: (state) => set({ isSidebarOpen: state }),
 }));

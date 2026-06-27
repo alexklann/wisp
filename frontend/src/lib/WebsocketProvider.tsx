@@ -25,6 +25,10 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
   const deleteMessage = useChatStore((state) => state.deleteMessage);
   const editMessage = useChatStore((state) => state.editMessage);
 
+  const attempts = useRef(0);
+  const [attemptCount, setAttemptCount] = useState<number>(0);
+  const reconnectTimeout = useRef<number | null>(null);
+
   const token = useAuthStore((store) => store.token);
 
   const subscribers = useRef<Set<(msg: WebsocketMessage) => void>>(new Set());
@@ -36,13 +40,53 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const connect = () => {
+      console.log(
+        `Attempting to connect WebSocket to backend server; attempt: [${attempts.current}] / delay: [${Math.min(1000 * 2 ** attempts.current, 10000)}]`,
+      );
       const ws = new WebSocket(
         `${import.meta.env.VITE_BACKEND_URL}/ws?token=${token}`,
       );
       wsRef.current = ws;
 
       ws.onopen = () => {
+        console.log("Successfully connected WebSocket to backend server");
         setSocket(ws);
+        attempts.current = 0;
+        setAttemptCount(0);
+
+        const { activeChannelId, setMessages } = useChatStore.getState();
+        if (activeChannelId) {
+          ws.send(
+            JSON.stringify({
+              type: "joinChannel",
+              channel_id: activeChannelId,
+            }),
+          );
+
+          if (token) {
+            fetch(
+              `${import.meta.env.VITE_BACKEND_URL}/channels/${activeChannelId}/messages/`,
+              {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              },
+            )
+              .then((response) => {
+                if (response.ok) {
+                  return response.json();
+                }
+                throw new Error("Could not fetch messages");
+              })
+              .then((messages) => {
+                setMessages(messages);
+              })
+              .catch((err) => {
+                console.error("Failed to refetch messages on reconnect:", err);
+              });
+          }
+        }
       };
 
       ws.onmessage = (event) => {
@@ -86,9 +130,21 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
 
       ws.onclose = () => {
         setSocket(null);
+
+        const delay = Math.min(1000 * 2 ** attempts.current, 10000);
+        attempts.current += 1;
+        setAttemptCount(attempts.current);
+
+        if (attempts.current > 10) {
+          return;
+        }
+
+        console.log("WebSocket connection closed. Trying to reconnect...");
+
+        reconnectTimeout.current = setTimeout(connect, delay);
       };
 
-      ws.onerror = (err) => {
+      ws.onerror = (err: Event) => {
         console.log(`WS Error: ${err}`);
         ws.close();
       };
@@ -97,6 +153,10 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
     connect();
 
     return () => {
+      if (reconnectTimeout.current) {
+        clearTimeout(reconnectTimeout.current);
+      }
+
       if (wsRef.current) {
         wsRef.current.onopen = null;
         wsRef.current.onmessage = null;
@@ -105,10 +165,17 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
         wsRef.current.close();
       }
     };
-  }, [token]);
+  }, [
+    token,
+    addMessage,
+    deleteMessage,
+    editMessage,
+    playNotification,
+    user?.id,
+  ]);
 
   return (
-    <WebsocketContext.Provider value={{ socket, subscribe }}>
+    <WebsocketContext.Provider value={{ socket, subscribe, attemptCount }}>
       {children}
     </WebsocketContext.Provider>
   );

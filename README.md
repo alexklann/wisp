@@ -1,11 +1,11 @@
 # Wisp
-A full-stack open-source alternative to Discord with real-time messaging and file sharing.  
-Built for speed and simplicity with **Vite+React** and **FastAPI**.  
+A full-stack open-source alternative to Discord with real-time messaging and file sharing.
+Built for speed and simplicity with **Vite+React** and **FastAPI**.
 
-> **Note:** This project is primarily hosted on [Codeberg](https://codeberg.org/klann/wisp).  
+> **Note:** This project is primarily hosted on [Codeberg](https://codeberg.org/klann/wisp).
 > If you're viewing this on GitHub, please open issues and PRs on Codeberg, as they won’t be addressed here.
 
-> Keep in mind that wisp is under active development.  
+> Keep in mind that wisp is under active development.
 > The current version of wisp is not production ready.
 
 ## Features
@@ -33,10 +33,10 @@ bun run dev --port 3000
 # Install and start the backend
 cd backend
 uv sync
-unv run fastapi dev --port 3001
+uv run fastapi dev --port 3001
 ```
 
-This project requires various .env files to work.  
+This project requires various .env files to work.
 In the frontend folder, create a .env file with the following:
 ```
 VITE_BACKEND_URL="http://localhost:3001" # The public backend url
