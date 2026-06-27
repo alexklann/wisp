@@ -9,6 +9,7 @@ import Markdown from "react-markdown";
 import rehypeExternalLinks from "rehype-external-links";
 import remarkGfm from "remark-gfm";
 import InlineMessageEditor from "../InlineMessageEditor";
+import FileIcon from "../../icons/FileIcon";
 
 interface Props {
   message: Message;
@@ -78,30 +79,30 @@ export default function MessageItem({
                   src={`${import.meta.env.VITE_BACKEND_URL}${attachment.url}`}
                 />
               ) : (
-                // <a
-                //   href={`${import.meta.env.VITE_BACKEND_URL}/download/${attachment.id}`}
-                //   download
-                //   target="_blank"
-                //   title="Download file"
-                //   className="flex flex-row w-full md:w-96 gap-1 bg-surface hover:bg-white/5 border-2 border-stroke rounded-lg pl-1 pr-4 py-2 cursor-pointer overflow-hidden"
-                //   key={`file_${attachment.id}`}
-                // >
-                //   <FileIcon className="text-text h-12 w-12 object-contain shrink-0" />
-                //   <div className="flex flex-col w-full min-w-0 flex-1">
-                //     <span className="block text-brand-pink truncate w-full decoration-0">
-                //       {attachment.file_name}
-                //     </span>
-                //     <span className="decoration-0 text-text font-normal text-sm">
-                //       {(attachment.file_size / 1000 / 1000).toFixed(2)}
-                //       MB
-                //     </span>
-                //   </div>
-                // </a>
-                <div>
-                  <span>
-                    There is supposed to be a file here but I disabled it
-                  </span>
-                </div>
+                <a
+                  href={`${import.meta.env.VITE_BACKEND_URL}/download/${attachment.id}`}
+                  download
+                  target="_blank"
+                  title="Download file"
+                  className="flex flex-row w-full md:w-96 gap-1 bg-surface hover:bg-white/5 border-2 border-stroke rounded-lg pl-1 pr-4 py-2 cursor-pointer overflow-hidden"
+                  key={`file_${attachment.id}`}
+                >
+                  <FileIcon className="text-text h-12 w-12 object-contain shrink-0" />
+                  <div className="flex flex-col w-full min-w-0 flex-1">
+                    <span className="block text-brand-pink truncate w-full decoration-0">
+                      {attachment.file_name}
+                    </span>
+                    <span className="decoration-0 text-text font-normal text-sm">
+                      {(attachment.file_size / 1000 / 1000).toFixed(2)}
+                      MB
+                    </span>
+                  </div>
+                </a>
+                // <div>
+                //   <span>
+                //     There is supposed to be a file here but I disabled it
+                //   </span>
+                // </div>
               ),
             )}
           </div>

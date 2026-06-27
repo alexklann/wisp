@@ -63,7 +63,7 @@ export default function ServerSidebar() {
 
       fetchServers();
     }
-  }, [serverFetchStatus, token, setServerFetchStatus, setServers]);
+  }, [serverFetchStatus, token, setServerFetchStatus, setServers, clear]);
 
   const fetchChannels = async (serverId: string) => {
     const response = await fetch(
