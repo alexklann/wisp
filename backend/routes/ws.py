@@ -4,6 +4,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect, status
 from pydantic import TypeAdapter
+from sqlalchemy.orm import aliased
 from sqlmodel import col, select, update
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -24,6 +25,7 @@ from models import (
     Channel,
     ChatMessageResponse,
     Message,
+    RepliedMessagePreview,
     ServerMember,
     User,
 )
@@ -44,40 +46,55 @@ async def process_send_message(
         sender_id=user_id,
         content=event.content,
         message_type="text",
+        reply_to_id=event.reply_to_id,
     )
     session.add(new_message)
     await session.commit()
-    await session.refresh(new_message)
+
+    linked_attachments = []
 
     if event.attachment_ids:
-        statement = (
-            update(Attachment)
-            .where(col(Attachment.id).in_(event.attachment_ids))
-            .where(col(Attachment.uploader_id) == user_id)
-            .where(col(Attachment.message_id).is_(None))
-            .values(message_id=new_message.id)
+        att_stmt = select(Attachment).where(
+            col(Attachment.id).in_(event.attachment_ids),
+            col(Attachment.uploader_id) == user_id,
+            col(Attachment.message_id).is_(None),
         )
-        await session.exec(statement)
+        att_results = await session.exec(att_stmt)
+        linked_attachments = att_results.all()
+
+        for attachment in linked_attachments:
+            attachment.message_id = new_message.id
+            session.add(attachment)
         await session.commit()
 
+    RepliedMessage = aliased(Message)
+    RepliedUser = aliased(User)
+
     statement = (
-        select(Message, User)
-        .where(Message.id == new_message.id)
+        select(Message, User, RepliedMessage, RepliedUser)
         .join(User, col(Message.sender_id) == User.id)
+        .outerjoin(RepliedMessage, col(Message.reply_to_id) == RepliedMessage.id)
+        .outerjoin(RepliedUser, col(RepliedMessage.sender_id) == RepliedUser.id)
+        .where(Message.id == new_message.id)
     )
     result = await session.exec(statement)
-    msg, user = result.one()
+    db_message, db_user, replied_msg, replied_user = result.one()
 
-    att_stmt = select(Attachment).where(col(Attachment.message_id) == msg.id)
-    att_results = await session.exec(att_stmt)
-    linked_attachments = att_results.all()
+    reply_data = None
+    if replied_msg and replied_user and replied_msg.id is not None:
+        reply_data = RepliedMessagePreview(
+            id=replied_msg.id,
+            content=replied_msg.content,
+            sender_username=replied_user.username,
+        )
 
     response = ChatMessageResponse(
-        **msg.model_dump(),
-        sender_username=user.username,
-        sender_display_name=user.display_name,
-        sender_avatar_url=user.avatar_url,
+        **db_message.model_dump(),
+        sender_username=db_user.username,
+        sender_display_name=db_user.display_name,
+        sender_avatar_url=db_user.avatar_url,
         attachments=[AttachmentResponse(**a.model_dump()) for a in linked_attachments],
+        replied_message=reply_data,
     )
 
     await manager.broadcast(

@@ -8,6 +8,17 @@ interface UIState {
   editingMessageId: number | null;
   setEditingMessageId: (id: number | null) => void;
 
+  replyingMessageId: number | null;
+  setReplyingMessageId: (id: number | null) => void;
+
+  replyingMessageContent: string | null;
+  setReplyingMessageContent: (content: string | null) => void;
+
+  replyingMessageUsername: string | null;
+  setReplyingMessageUsername: (username: string | null) => void;
+
+  clearReplyingMessage: () => void;
+
   activeModal: ModalType | null;
   openModal: (modal: ModalType) => void;
   closeModal: () => void;
@@ -22,6 +33,24 @@ export const useUIStore = create<UIState>((set) => ({
 
   editingMessageId: null,
   setEditingMessageId: (id) => set({ editingMessageId: id }),
+
+  replyingMessageId: null,
+  setReplyingMessageId: (id) => set({ replyingMessageId: id }),
+
+  replyingMessageContent: null,
+  setReplyingMessageContent: (content) =>
+    set({ replyingMessageContent: content }),
+
+  replyingMessageUsername: null,
+  setReplyingMessageUsername: (username) =>
+    set({ replyingMessageUsername: username }),
+
+  clearReplyingMessage: () =>
+    set({
+      replyingMessageId: null,
+      replyingMessageContent: null,
+      replyingMessageUsername: null,
+    }),
 
   activeModal: null,
   openModal: (modal) => set({ activeModal: modal }),

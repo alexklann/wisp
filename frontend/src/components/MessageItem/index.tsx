@@ -28,12 +28,20 @@ export default function MessageItem({
 
   return (
     <div
-      className={`group relative flex flex-col gap-2 rounded-lg border-2 border-transparent hover:border-brand-pink hover:bg-surface`}
+      className={`group relative flex flex-col rounded-lg border-2 border-transparent hover:border-brand-pink hover:bg-surface`}
       key={`message_${message.id}`}
     >
       <MessageActions message={message} />
 
       <MessageHeader message={message} isConsecutive={isConsecutive} />
+      {message.replied_message && (
+        <div className="flex flex-row gap-1 items-center bg-surface border border-stroke px-2 py-1 rounded-lg w-fit mb-1">
+          <span className="text-xs font-bold">
+            {message.replied_message.sender_username}:
+          </span>
+          <span className="text-xs">{message.replied_message.content}</span>
+        </div>
+      )}
       {editingMessageId !== message.id ? (
         <div>
           <Markdown
@@ -53,7 +61,7 @@ export default function MessageItem({
       )}
 
       {message.attachments.length > 0 && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 my-2">
           <div>
             {message.attachments.map((attachment: Attachment) =>
               attachment.file_type.startsWith("image/") ? (
@@ -77,6 +85,7 @@ export default function MessageItem({
                   controls
                   className="max-w-full w-full h-96 md:w-2xl"
                   src={`${import.meta.env.VITE_BACKEND_URL}${attachment.url}`}
+                  preload="metadata"
                 />
               ) : (
                 <a

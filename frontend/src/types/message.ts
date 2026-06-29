@@ -12,6 +12,7 @@ export default interface Message {
   is_deleted: number;
   created_at: number;
   attachments: Attachment[];
+  replied_message?: RepliedMessagePreview;
 }
 
 export interface Attachment {
@@ -21,4 +22,10 @@ export interface Attachment {
   file_size: number;
   file_name: string;
   created_at: string;
+}
+
+export interface RepliedMessagePreview {
+  id: number;
+  content: string;
+  sender_username: string;
 }

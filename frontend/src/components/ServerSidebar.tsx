@@ -100,6 +100,7 @@ export default function ServerSidebar() {
 
     if (response.ok) {
       const responseBody = await response.json();
+      console.log(responseBody);
       setMessages(responseBody);
     } else {
       console.error("Could not fetch messages");
@@ -201,7 +202,7 @@ export default function ServerSidebar() {
       </div>
       <div className="flex flex-row items-end mt-auto">
         <span className="w-full text-sm text-text/20 font-bold">
-          Wisp 260629-01
+          Wisp 260629-02
         </span>
         <BaseActionButton
           title="Server Usage"

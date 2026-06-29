@@ -82,6 +82,9 @@ class Message(SQLModel, table=True):
     )
 
     attachments: list[Attachment] = Relationship(back_populates="message")
+    replied_message: Optional["Message"] = Relationship(
+        sa_relationship_kwargs={"remote_side": "Message.id"}
+    )
     __table_args__ = (Index("idx_messages_created_at", "channel_id", "created_at"),)
 
 
@@ -92,6 +95,12 @@ class AttachmentResponse(BaseModel):
     file_size: int
     file_name: str
     created_at: datetime
+
+
+class RepliedMessagePreview(BaseModel):
+    id: int
+    content: Optional[str]
+    sender_username: str
 
 
 class ChatMessageResponse(BaseModel):
@@ -108,6 +117,7 @@ class ChatMessageResponse(BaseModel):
     is_deleted: bool
     created_at: datetime
     attachments: list[AttachmentResponse] = []
+    replied_message: Optional[RepliedMessagePreview] = None
 
 
 class Attachment(SQLModel, table=True):

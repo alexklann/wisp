@@ -4,6 +4,7 @@ import SlateEditor from "./SlateEditor";
 import AttachmentDrawer from "./AttachmentDrawer";
 import { useChatInput } from "../hooks/useChatInput";
 import PaperclipIcon from "../icons/PaperclipIcon";
+import { useUIStore } from "../stores/useUIStore";
 
 export default function ChatInput() {
   const {
@@ -15,6 +16,14 @@ export default function ChatInput() {
     isUploading,
     uploadProgress,
   } = useChatInput();
+
+  const replyingMessageId = useUIStore((state) => state.replyingMessageId);
+  const replyingMessageContent = useUIStore(
+    (state) => state.replyingMessageContent,
+  );
+  const replyingMessageUsername = useUIStore(
+    (state) => state.replyingMessageUsername,
+  );
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -47,6 +56,16 @@ export default function ChatInput() {
         isUploading={isUploading}
         uploadProgress={uploadProgress}
       />
+
+      {replyingMessageId && (
+        <div className="flex flex-row gap-2 items-center text-sm px-2 py-1 border-b border-stroke">
+          <span>Replying to:</span>
+          <div className="flex flex-row gap-1 px-2 py-1 border border-stroke rounded-lg">
+            <span className="font-bold">{replyingMessageUsername}:</span>
+            <span>{replyingMessageContent}</span>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-row gap-2 p-2">
         <button

@@ -5,6 +5,7 @@ import { useWebsocket } from "./useWebsocket";
 import { useAuthStore } from "../stores/useAuthStore";
 import { uploadFileWithProgress } from "../lib/UploadFileWithProgress";
 import { useChatStore } from "../stores/useChatStore";
+import { useUIStore } from "../stores/useUIStore";
 
 export function useChatInput() {
   const { socket } = useWebsocket();
@@ -19,6 +20,11 @@ export function useChatInput() {
     {},
   );
   const [isUploading, setIsUploading] = useState<boolean>(false);
+
+  const replyingMessageId = useUIStore((state) => state.replyingMessageId);
+  const clearReplyingMessage = useUIStore(
+    (state) => state.clearReplyingMessage,
+  );
 
   const sendMessage = async () => {
     const text = Node.string(editor);
@@ -47,6 +53,7 @@ export function useChatInput() {
           channel_id: activeChannelId,
           content: text,
           attachment_ids: attachmentIds,
+          reply_to_id: replyingMessageId,
         }),
       );
 
@@ -56,6 +63,7 @@ export function useChatInput() {
           focus: Editor.end(editor, []),
         },
       });
+      clearReplyingMessage();
       setAttachments([]);
       setUploadProgress({});
     } catch (error) {

@@ -10,7 +10,7 @@ export default function MessageHeader({ message, isConsecutive }: Props) {
   if (isConsecutive) return;
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col mb-2">
       <div className="flex flex-row items-center gap-2">
         <MessageAvatar message={message} />
         <span className="font-bold">{message.sender_display_name}</span>

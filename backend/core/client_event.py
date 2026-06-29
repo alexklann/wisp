@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -12,6 +12,7 @@ class SendMessage(BaseModel):
     channel_id: str
     content: str
     attachment_ids: list[str] = Field(default_factory=list)
+    reply_to_id: Optional[int] = None
 
 
 class JoinChannel(BaseModel):

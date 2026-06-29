@@ -32,16 +32,28 @@ interface ServerUsage {
 
 function PartitionBar({
   device,
+  used,
+  total,
   percent,
 }: {
   device: string;
+  used: number;
+  total: number;
   percent: number;
 }) {
+  const diskUsed = Math.fround(used / 1024 ** 3).toFixed(1);
+  const diskTotal = Math.fround(total / 1024 ** 3).toFixed(1);
+
   return (
     <div className="flex flex-col">
       <div className="flex flex-row gap-2">
         <span className="font-bold">{device}</span>
         <span>{percent}%</span>
+      </div>
+      <div className="flex flex-row gap-2">
+        <span>{diskUsed}</span>
+        <span>/</span>
+        <span>{diskTotal}GB</span>
       </div>
       <div className="w-full bg-surface-base border border-stroke h-4 rounded-full">
         <div
@@ -70,10 +82,8 @@ export default function ServerUsageModal() {
       if (response.ok) {
         const responseBody = (await response.json()) as ServerUsage;
 
-        // Sort partition total amount in descending order
-        responseBody.partitions.sort(
-          (partA, partB) => partB.total - partA.total,
-        );
+        // Sort partition used amount in descending order
+        responseBody.partitions.sort((partA, partB) => partB.used - partA.used);
 
         setServerUsage(responseBody);
         setFetchStatus("success");
@@ -113,6 +123,8 @@ export default function ServerUsageModal() {
               <PartitionBar
                 key={`partition_${index}`}
                 device={partition.device}
+                used={partition.used}
+                total={partition.total}
                 percent={partition.percent}
               />
             ))}
