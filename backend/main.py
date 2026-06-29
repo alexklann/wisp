@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+import psutil
+from annotated_types import Interval
 from fastapi import Depends, FastAPI
 from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -53,6 +55,47 @@ def read_root():
 @app.get("/health")
 def get_health():
     return "Healthy"
+
+
+@app.get("/usage")
+def get_disks():
+    partition_list = []
+
+    # Get disks and their usage
+    for partition in psutil.disk_partitions():
+        try:
+            usage = psutil.disk_usage(partition.mountpoint)
+            partition_list.append(
+                {
+                    "device": partition.device,
+                    "total": usage.total,
+                    "free": usage.free,
+                    "used": usage.used,
+                    "percent": usage.percent,
+                }
+            )
+        except PermissionError, FileNotFoundError, OSError:
+            continue
+
+    # Get cpu usage and per-core usage
+    per_core_usage = psutil.cpu_percent(interval=0.5, percpu=True)
+    total_cpu_usage = psutil.cpu_percent(interval=None)
+
+    # Get memory usage
+    svmem = psutil.virtual_memory()
+    swap = psutil.swap_memory()
+
+    return {
+        "cpu": {"cores": per_core_usage, "total": total_cpu_usage},
+        "memory": {
+            "total": svmem.total,
+            "free": svmem.available,
+            "used": svmem.used,
+            "percent": svmem.percent,
+        },
+        "swap": {"total": swap.total, "used": swap.used, "percent": swap.percent},
+        "partitions": partition_list,
+    }
 
 
 @app.get("/download/{attachment_id}")

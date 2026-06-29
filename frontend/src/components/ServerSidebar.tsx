@@ -6,6 +6,8 @@ import type Channel from "../types/channel";
 import { useWebsocket } from "../hooks/useWebsocket";
 import { useUIStore } from "../stores/useUIStore";
 import CloseIcon from "../icons/CloseIcon";
+import HDDIcon from "../icons/HDDIcon";
+import BaseActionButton from "./BaseActionButton";
 
 export default function ServerSidebar() {
   const token = useAuthStore((state) => state.token);
@@ -195,9 +197,17 @@ export default function ServerSidebar() {
           )}
         </div>
       </div>
-      <span className="w-full text-center mt-auto text-sm text-text/20 font-bold">
-        Wisp 260611-02
-      </span>
+      <div className="flex flex-row items-end mt-auto">
+        <span className="w-full text-sm text-text/20 font-bold">
+          Wisp 260629-01
+        </span>
+        <BaseActionButton
+          title="Server Usage"
+          onClick={() => openModal("serverUsage")}
+        >
+          <HDDIcon className="text-text w-[75%] aspect-square" />
+        </BaseActionButton>
+      </div>
     </aside>
   );
 }

@@ -78,7 +78,6 @@ export default function ChatInterface() {
       } else {
         currentGroup.push(msg);
       }
-      console.log(currentGroup);
     }
     if (currentGroup.length > 0) groups.push(currentGroup);
     return groups;

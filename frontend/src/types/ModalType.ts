@@ -1,1 +1,5 @@
-export type ModalType = "joinServer" | "createServer" | "createChannel";
+export type ModalType =
+  | "joinServer"
+  | "createServer"
+  | "createChannel"
+  | "serverUsage";

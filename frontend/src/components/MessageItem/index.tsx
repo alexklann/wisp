@@ -75,7 +75,7 @@ export default function MessageItem({
                 <video
                   key={`video_${attachment.id}`}
                   controls
-                  className="max-w-full w-full md:w-2xl"
+                  className="max-w-full w-full h-96 md:w-2xl"
                   src={`${import.meta.env.VITE_BACKEND_URL}${attachment.url}`}
                 />
               ) : (
@@ -98,11 +98,6 @@ export default function MessageItem({
                     </span>
                   </div>
                 </a>
-                // <div>
-                //   <span>
-                //     There is supposed to be a file here but I disabled it
-                //   </span>
-                // </div>
               ),
             )}
           </div>
