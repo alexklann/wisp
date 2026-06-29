@@ -65,15 +65,15 @@ export default function ServerUsageModal() {
 
       setFetchStatus("loading");
 
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/usage/`,
-      );
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/usage`);
 
       if (response.ok) {
         const responseBody = (await response.json()) as ServerUsage;
 
-        // Sort partition used amount in descending order
-        responseBody.partitions.sort((partA, partB) => partB.used - partA.used);
+        // Sort partition total amount in descending order
+        responseBody.partitions.sort(
+          (partA, partB) => partB.total - partA.total,
+        );
 
         setServerUsage(responseBody);
         setFetchStatus("success");
@@ -92,7 +92,7 @@ export default function ServerUsageModal() {
         <ModalTitle>Server Usage</ModalTitle>
         <ModalDescription>This shows the server usage</ModalDescription>
       </ModalHeader>
-      {fetchStatus === "success" ? (
+      {fetchStatus === "success" && serverUsage !== null ? (
         <div className="flex flex-col gap-2">
           <div className="flex flex-col">
             <span>CPU Usage: {serverUsage.cpu.total}%</span>

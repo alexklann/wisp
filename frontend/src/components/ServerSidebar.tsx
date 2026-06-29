@@ -155,12 +155,14 @@ export default function ServerSidebar() {
         </button>
         <div className="flex flex-row gap-2 p-2 w-full items-center justify-between">
           <span className="text-xs text-white/75 font-medium">Channels</span>
-          <button
-            onClick={() => openModal("createChannel")}
-            className="cursor-pointer"
-          >
-            +
-          </button>
+          {activeServerId !== null && (
+            <button
+              onClick={() => openModal("createChannel")}
+              className="cursor-pointer"
+            >
+              +
+            </button>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">
