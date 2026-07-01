@@ -1,117 +1,36 @@
 import type Message from "../../types/message";
-import type { Attachment } from "../../types/message";
-import type { Dispatch, SetStateAction } from "react";
-import AudioAttachment from "../AudioAttachment";
 import MessageActions from "./components/MessageActions";
 import MessageHeader from "./components/MessageHeader";
-import { useUIStore } from "../../stores/useUIStore";
-import Markdown from "react-markdown";
-import rehypeExternalLinks from "rehype-external-links";
-import remarkGfm from "remark-gfm";
-import InlineMessageEditor from "../InlineMessageEditor";
-import FileIcon from "../../icons/FileIcon";
+import MessageReply from "./components/MessageReply";
+import MessageAttachments from "./components/MessageAttachments";
+import MessageContent from "./components/MessageContent";
 
 interface Props {
   message: Message;
-  setSelectedImageURL: Dispatch<SetStateAction<string | null>>;
-  setSelectedImageFilename: Dispatch<SetStateAction<string | null>>;
   isConsecutive: boolean;
 }
 
-export default function MessageItem({
-  message,
-  setSelectedImageURL,
-  setSelectedImageFilename,
-  isConsecutive,
-}: Props) {
-  const editingMessageId = useUIStore((state) => state.editingMessageId);
-
+export default function MessageItem({ message, isConsecutive }: Props) {
   return (
     <div
-      className={`group relative flex flex-col rounded-lg border-2 border-transparent hover:border-brand-pink hover:bg-surface`}
-      key={`message_${message.id}`}
+      className={`group relative flex flex-col rounded-lg border-2 border-transparent hover:border-brand-pink hover:bg-surface py-0.5`}
     >
-      <MessageActions message={message} />
-
-      <MessageHeader message={message} isConsecutive={isConsecutive} />
-      {message.replied_message && (
-        <div className="flex flex-row gap-1 items-center bg-surface border border-stroke px-2 py-1 rounded-lg w-fit mb-1">
-          <span className="text-xs font-bold">
-            {message.replied_message.sender_username}:
-          </span>
-          <span className="text-xs">{message.replied_message.content}</span>
-        </div>
-      )}
-      {editingMessageId !== message.id ? (
-        <div>
-          <Markdown
-            rehypePlugins={[
-              [rehypeExternalLinks, { target: "_blank", rel: ["noreferrer"] }],
-            ]}
-            remarkPlugins={[remarkGfm]}
-          >
-            {message.content}
-          </Markdown>
-        </div>
-      ) : (
-        <InlineMessageEditor
-          messageUUID={message.id}
-          initialMessage={message.content ?? ""}
-        />
-      )}
-
-      {message.attachments.length > 0 && (
-        <div className="flex flex-col gap-2 my-2">
-          <div>
-            {message.attachments.map((attachment: Attachment) =>
-              attachment.file_type.startsWith("image/") ? (
-                <img
-                  onSelect={(event) => event.preventDefault()}
-                  key={`image_${attachment.id}`}
-                  onClick={() => {
-                    setSelectedImageURL(
-                      `${import.meta.env.VITE_BACKEND_URL}${attachment.url}`,
-                    );
-                    setSelectedImageFilename(attachment.id);
-                  }}
-                  className="max-w-48 cursor-pointer rounded-lg"
-                  src={`${import.meta.env.VITE_BACKEND_URL}${attachment.url}`}
-                />
-              ) : attachment.file_type.startsWith("audio/") ? (
-                <AudioAttachment attachment={attachment} />
-              ) : attachment.file_type.startsWith("video/") ? (
-                <video
-                  key={`video_${attachment.id}`}
-                  controls
-                  className="max-w-full w-full h-96 md:w-2xl"
-                  src={`${import.meta.env.VITE_BACKEND_URL}${attachment.url}`}
-                  preload="metadata"
-                />
-              ) : (
-                <a
-                  href={`${import.meta.env.VITE_BACKEND_URL}/download/${attachment.id}`}
-                  download
-                  target="_blank"
-                  title="Download file"
-                  className="flex flex-row w-full md:w-96 gap-1 bg-surface hover:bg-white/5 border-2 border-stroke rounded-lg pl-1 pr-4 py-2 cursor-pointer overflow-hidden"
-                  key={`file_${attachment.id}`}
-                >
-                  <FileIcon className="text-text h-12 w-12 object-contain shrink-0" />
-                  <div className="flex flex-col w-full min-w-0 flex-1">
-                    <span className="block text-brand-pink truncate w-full decoration-0">
-                      {attachment.file_name}
-                    </span>
-                    <span className="decoration-0 text-text font-normal text-sm">
-                      {(attachment.file_size / 1000 / 1000).toFixed(2)}
-                      MB
-                    </span>
-                  </div>
-                </a>
-              ),
-            )}
-          </div>
-        </div>
-      )}
+      <MessageActions
+        messageId={message.id}
+        messagePreviewContent={message.content}
+        senderUsername={message.sender_username}
+        senderId={message.sender_id}
+      />
+      <MessageHeader
+        avatarUrl={message.sender_avatar_url}
+        displayName={message.sender_display_name}
+        createdAt={message.created_at}
+        editedAt={message.edited_at}
+        isConsecutive={isConsecutive}
+      />
+      <MessageReply messagePreview={message.replied_message} />
+      <MessageContent messageId={message.id} messageContent={message.content} />
+      <MessageAttachments messageAttachments={message.attachments} />
     </div>
   );
 }

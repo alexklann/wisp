@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useTyping } from "../hooks/useTyping";
 import { useChatStore } from "../stores/useChatStore";
 import type Message from "../types/message";
@@ -23,10 +23,12 @@ export default function ChatInterface() {
 
   const setIsSidebarOpen = useUIStore((state) => state.setIsSidebarOpen);
 
-  const [selectedImageURL, setSelectedImageURL] = useState<string | null>(null);
-  const [selectedImageFilename, setSelectedImageFilename] = useState<
-    string | null
-  >(null);
+  const selectedImageURL = useUIStore((state) => state.selectedImageURL);
+  const setSelectedImageURL = useUIStore((state) => state.setSelectedImageURL);
+
+  const selectedImageFilename = useUIStore(
+    (state) => state.selectedImageFilename,
+  );
 
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
@@ -95,7 +97,7 @@ export default function ChatInterface() {
       handleKeyPress(event);
     });
     return () => window.removeEventListener("keypress", handleKeyPress);
-  }, [selectedImageURL]);
+  }, [selectedImageURL, setSelectedImageURL]);
 
   return (
     <>
@@ -179,10 +181,8 @@ export default function ChatInterface() {
             itemContent={(_index, group) =>
               group.map((message: Message, idx: number) => (
                 <MessageItem
-                  key={message.id}
+                  key={`message_${message.id}`}
                   message={message}
-                  setSelectedImageURL={setSelectedImageURL}
-                  setSelectedImageFilename={setSelectedImageFilename}
                   isConsecutive={idx > 0}
                 />
               ))

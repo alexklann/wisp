@@ -19,6 +19,12 @@ interface UIState {
 
   clearReplyingMessage: () => void;
 
+  selectedImageURL: string | null;
+  selectedImageFilename: string | null;
+
+  setSelectedImageURL: (url: string | null) => void;
+  setSelectedImageFilename: (filename: string | null) => void;
+
   activeModal: ModalType | null;
   openModal: (modal: ModalType) => void;
   closeModal: () => void;
@@ -51,6 +57,13 @@ export const useUIStore = create<UIState>((set) => ({
       replyingMessageContent: null,
       replyingMessageUsername: null,
     }),
+
+  selectedImageURL: null,
+  selectedImageFilename: null,
+
+  setSelectedImageURL: (url) => set({ selectedImageURL: url }),
+  setSelectedImageFilename: (filename) =>
+    set({ selectedImageFilename: filename }),
 
   activeModal: null,
   openModal: (modal) => set({ activeModal: modal }),

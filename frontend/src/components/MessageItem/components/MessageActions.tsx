@@ -4,10 +4,21 @@ import TrashIcon from "../../../icons/TrashIcon";
 import { useAuthStore } from "../../../stores/useAuthStore";
 import { useChatStore } from "../../../stores/useChatStore";
 import { useUIStore } from "../../../stores/useUIStore";
-import type Message from "../../../types/message";
 import BaseActionButton from "../../BaseActionButton";
 
-export default function MessageActions({ message }: { message: Message }) {
+interface Props {
+  messageId: number;
+  messagePreviewContent: string | null;
+  senderUsername: string;
+  senderId: string;
+}
+
+export default function MessageActions({
+  messageId,
+  messagePreviewContent,
+  senderUsername,
+  senderId,
+}: Props) {
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
 
@@ -27,16 +38,16 @@ export default function MessageActions({ message }: { message: Message }) {
   const deleteMessageStorage = useChatStore((state) => state.deleteMessage);
 
   const onReplyMessageButtonClicked = () => {
-    setReplyingMessageId(message.id);
-    setReplyingMessageContent(message.content);
-    setReplyingMessageUsername(message.sender_username);
+    setReplyingMessageId(messageId);
+    setReplyingMessageContent(messagePreviewContent);
+    setReplyingMessageUsername(senderUsername);
   };
 
   const onEditMessageButtonClicked = () => {
-    if (editingMessageId === message.id) {
+    if (editingMessageId === messageId) {
       setEditingMessageId(null);
     }
-    setEditingMessageId(message.id);
+    setEditingMessageId(messageId);
   };
 
   const deleteMessage = async (messageId: number) => {
@@ -58,7 +69,7 @@ export default function MessageActions({ message }: { message: Message }) {
   };
 
   // Message DOES NOT belong to user
-  if (!user || message.sender_id != user.id) {
+  if (!user || senderId != user.id) {
     return (
       <div className="flex-row gap-1 absolute top-0 right-0 hidden group-hover:flex -translate-y-5 -translate-x-2">
         <BaseActionButton
@@ -88,7 +99,7 @@ export default function MessageActions({ message }: { message: Message }) {
       </BaseActionButton>
       <BaseActionButton
         title="Edit Message"
-        onClick={() => deleteMessage(message.id)}
+        onClick={() => deleteMessage(messageId)}
         className="hover:bg-red-400"
       >
         <TrashIcon className="text-text w-[75%] aspect-square" />
