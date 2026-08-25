@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect, status
 from pydantic import TypeAdapter
 from sqlalchemy.orm import aliased
-from sqlmodel import col, select, update
+from sqlmodel import col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from core.app_state import AppState
@@ -29,6 +29,8 @@ from models import (
     ServerMember,
     User,
 )
+
+from routes.push import send_push_notification
 
 router = APIRouter()
 
@@ -80,6 +82,10 @@ async def process_send_message(
     result = await session.exec(statement)
     db_message, db_user, replied_msg, replied_user = result.one()
 
+    statement = select(Channel).where(Channel.id == db_message.channel_id)
+    result = await session.exec(statement)
+    db_channel = result.one()
+
     reply_data = None
     if replied_msg and replied_user and replied_msg.id is not None:
         reply_data = RepliedMessagePreview(
@@ -100,6 +106,16 @@ async def process_send_message(
     await manager.broadcast(
         event.channel_id, {"type": "message", **response.model_dump(mode="json")}
     )
+
+    success = await send_push_notification(
+        server_id=db_channel.server_id,
+        title=db_user.display_name,
+        body=event.content,
+        session=session
+    )
+
+    if not success:
+        print("Error sending push notification")
 
 
 async def process_join_channel(
@@ -223,7 +239,6 @@ async def ws_handler(
         async for text in websocket.iter_text():
             try:
                 event = event_adapter.validate_json(text)
-                print(event)
                 await handle_event(
                     event,
                     websocket,

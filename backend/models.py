@@ -23,6 +23,25 @@ class User(SQLModel, table=True):
         default=None, sa_column_kwargs={"server_default": text("CURRENT_TIMESTAMP")}
     )
 
+    push_subscriptions: list["PushSubscription"] = Relationship(
+        back_populates="user", cascade_delete=True
+    )
+
+
+class PushSubscription(SQLModel, table=True):
+    __tablename__ = "push_subscriptions"  # type: ignore
+
+    id: str = Field(primary_key=True)
+    user_id: str = Field(foreign_key="users.id")
+    endpoint: str
+    p256dh: str
+    auth: str
+    created_at: Optional[datetime] = Field(
+        default=None, sa_column_kwargs={"server_default": text("CURRENT_TIMESTAMP")}
+    )
+
+    user: Optional["User"] = Relationship(back_populates="push_subscriptions")
+
 
 class Server(SQLModel, table=True):
     __tablename__ = "servers"  # type: ignore
