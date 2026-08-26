@@ -1,7 +1,8 @@
-import { Node, type BaseEditor } from "slate";
+import { Editor, Node, Transforms, type BaseEditor } from "slate";
 import { Slate, Editable, ReactEditor } from "slate-react";
 import {
   useCallback,
+  useEffect,
   type Dispatch,
   type KeyboardEvent,
   type SetStateAction,
@@ -24,11 +25,20 @@ export default function SlateEditor({
   isUploading,
   sendMessage,
 }: Props) {
+  const replyingMessageId = useUIStore((state) => state.replyingMessageId);
   const user = useAuthStore((state) => state.user);
 
   const setEditingMessageId = useUIStore((state) => state.setEditingMessageId);
 
   const { notifyTyping } = useTyping();
+
+  useEffect(() => {
+    if (replyingMessageId !== null) {
+      ReactEditor.focus(editor);
+      const endPoint = Editor.end(editor, []);
+      Transforms.select(editor, endPoint);
+    }
+  }, [replyingMessageId, editor])
 
   const onPaste = useCallback(
     (event: React.ClipboardEvent<HTMLDivElement>) => {
