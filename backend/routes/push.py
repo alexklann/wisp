@@ -18,6 +18,8 @@ from models import PushSubscription, ServerMember
 from routes.auth import get_current_user_id
 from functools import lru_cache
 
+from core.connection_manager import get_connection_manager
+
 load_dotenv()
 
 router = APIRouter()
@@ -28,6 +30,7 @@ def get_webpush_client() -> WebPush:
         public_key=Path("./vapid_public.pem"),
         private_key=Path("./vapid_private.pem"),
         subscriber=os.getenv("VAPID_CLAIM_SUB", "admin@example.com"),
+        ttl=86400,
     )
 
 
@@ -125,8 +128,9 @@ async def send_test_push(
     return {"status": "sent", "count": len(subscriptions)}
 
 
-async def send_push_notification(server_id: str, title: str, body: str, session: AsyncSession) -> bool:
+async def send_push_notification(server_id: str, title: str, body: str, session: AsyncSession, sender_id: str | None = None) -> bool:
     wp = get_webpush_client()
+    manager = get_connection_manager()
     
     result = await session.execute(
         select(ServerMember).where(ServerMember.server_id == server_id)
@@ -136,8 +140,16 @@ async def send_push_notification(server_id: str, title: str, body: str, session:
     if not member_ids:
         return False
 
+    offline_member_ids = [
+        uid for uid in member_ids
+        if uid != sender_id and not manager.is_user_online(uid)
+    ]
+
+    if not offline_member_ids:
+        return True
+
     result = await session.execute(
-        select(PushSubscription).where(col(PushSubscription.user_id).in_(member_ids))
+        select(PushSubscription).where(col(PushSubscription.user_id).in_(offline_member_ids))
     )
     subscriptions = result.scalars().all()
 
@@ -169,6 +181,7 @@ async def send_push_notification(server_id: str, title: str, body: str, session:
                     content=message.encrypted,
                     headers=message.headers,  # type: ignore
                 )
+                print(f"FCM Push response status: {resp.status_code}, body: {resp.text}")
         except Exception as e:
             print(f"Push failed for {sub.endpoint}: {e}")
             return False

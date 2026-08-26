@@ -6,6 +6,21 @@ from fastapi import WebSocket
 class ConnectionManager:
     def __init__(self):
         self.channels: dict[str, set[WebSocket]] = {}
+        self.active_users: dict[str, set[WebSocket]] = {}
+
+    def connect_user(self, user_id: str, websocket: WebSocket):
+        if user_id not in self.active_users:
+            self.active_users[user_id] = set()
+        self.active_users[user_id].add(websocket)
+
+    def disconnect_user(self, user_id: str, websocket: WebSocket):
+        if user_id in self.active_users:
+            self.active_users[user_id].discard(websocket)
+            if not self.active_users[user_id]:
+                del self.active_users[user_id]
+
+    def is_user_online(self, user_id: str):
+        return user_id in self.active_users and len(self.active_users[user_id]) > 0
 
     def join_channel(self, websocket: WebSocket, channel_id: str):
         if channel_id not in self.channels:

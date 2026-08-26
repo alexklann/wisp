@@ -111,7 +111,8 @@ async def process_send_message(
         server_id=db_channel.server_id,
         title=db_user.display_name,
         body=event.content,
-        session=session
+        session=session,
+        sender_id=user_id
     )
 
     if not success:
@@ -231,6 +232,7 @@ async def ws_handler(
         return
 
     await websocket.accept()
+    connection_manager.connect_user(user_id, websocket)
     current_channel: list[Optional[str]] = [None]
 
     print(f"User connected: {user_id}")
@@ -252,6 +254,7 @@ async def ws_handler(
     except WebSocketDisconnect:
         pass
     finally:
+        connection_manager.disconnect_user(user_id, websocket)
         if current_channel[0]:
             connection_manager.leave_channel(websocket, current_channel[0])
             print(f"User disconnected: {user_id}")
