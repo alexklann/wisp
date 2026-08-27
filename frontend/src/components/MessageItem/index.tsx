@@ -28,9 +28,11 @@ export default function MessageItem({ message, isConsecutive }: Props) {
         editedAt={message.edited_at}
         isConsecutive={isConsecutive}
       />
-      <MessageReply messagePreview={message.replied_message} />
-      <MessageContent messageId={message.id} messageContent={message.content} />
-      <MessageAttachments messageAttachments={message.attachments} />
+      <div className="flex flex-col ml-12">
+        <MessageReply messagePreview={message.replied_message} />
+        <MessageContent messageId={message.id} messageContent={message.content} />
+        <MessageAttachments messageAttachments={message.attachments} />
+      </div>
     </div>
   );
 }

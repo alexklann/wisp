@@ -14,6 +14,7 @@ Built for speed and simplicity with **Vite+React** and **FastAPI**.
 - **Image, Video and Audio Preview:** Inline preview allows for instant viewing inside of Wisp.
 - **Server/Channel Architecture:** Provides a familiar feel while keeping your connections organized.
 - **User-Role Security:** Basic security allows only the admin to change server settings.
+- **Notifications:** Full support for local and Push API notifications.
 
 ## Quick Start / Development
 ### Prerequisites
@@ -49,6 +50,11 @@ token_secret="" # A generated secret using openssl
 backend_public_url="http://localhost:3001" # The public backend url
 FRONTEND_CORS_ORIGINS="http://localhost:3000" # The public frontend url
 ```
+
+## AI Usage
+This project is not and will never be vibe-coded. All code is written by hand, by humans.<br/>
+AI was only used during debugging and architectural decision making. Nothing was automated.<br/>
+The `AGENTS.md` file exists for easier context-filling for AI models.
 
 ## License
 This project uses a `GPL-3.0` license.

@@ -20,7 +20,7 @@ export default function MessageHeader({
   return (
     <div className="flex flex-col mb-2">
       <div className="flex flex-row items-center gap-2">
-        {avatarUrl && <MessageAvatar avatarUrl={avatarUrl} />}
+        <MessageAvatar avatarUrl={avatarUrl} />
         <div className="flex flex-col">
           <span className="font-bold">{displayName}</span>
           <div className="flex flex-row gap-1">

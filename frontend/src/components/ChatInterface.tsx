@@ -18,6 +18,9 @@ const START_INDEX = 1_000_000;
 export default function ChatInterface() {
   const messages = useChatStore((state) => state.messages);
   const activeChannelId = useChatStore((state) => state.activeChannelId);
+  const channels = useChatStore((state) => state.channels);
+
+  const activeChannel = channels.find((ch) => ch.id === activeChannelId);
 
   const { socket, attemptCount } = useWebsocket();
 
@@ -70,7 +73,7 @@ export default function ChatInterface() {
 
       const isTimeExceeded =
         new Date(msg.created_at).getTime() -
-          new Date(lastMsg.created_at).getTime() >=
+        new Date(lastMsg.created_at).getTime() >=
         5 * 60 * 1000;
       const isDifferentSender = msg.sender_id !== lastMsg.sender_id;
 
@@ -165,7 +168,7 @@ export default function ChatInterface() {
           >
             <HamburgerIcon className="text-text" />
           </button>
-          <span className="text-lg font-bold">Channel Name</span>
+          <span className="text-lg font-bold">{activeChannel && activeChannel.name}</span>
         </div>
         <div className="flex flex-col h-full overflow-y-auto">
           <Virtuoso
