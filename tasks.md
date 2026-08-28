@@ -1,7 +1,4 @@
 # Roadmap:
-- Message pagination
-    - Add limit + offset query params to backend
-    - Change react virtuoso to fetch new messages on full scroll
 - User List / Online Status
     - Add endpoint that returns all active users
     - Add websocket event that logs user delta events
@@ -44,3 +41,11 @@ User B: [ctx1] but good for him
 
 -- The [ctxn] is only a placeholder to indicate different context's.
 -- Visually, this will be displayed using different message background colors or small tag indicators.
+
+
+# Needs re-thinking / fixing / refactoring:
+
+**Re-thinking**:
+- Message Pagination + Paginated Loading with Virtuoso
+    - Currently, this is super jittery and ugly looking.
+    - Maybe go with a flex-col-reverse list? *requires major refactoring*

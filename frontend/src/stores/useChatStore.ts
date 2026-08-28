@@ -23,6 +23,8 @@ interface ChatState {
 
   deleteMessage: (messageId: number) => void;
   editMessage: (messageId: number, content: string) => void;
+
+  prependMessages: (olderMessages: Message[]) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -59,4 +61,9 @@ export const useChatStore = create<ChatState>((set) => ({
           : msg,
       ),
     })),
+
+  prependMessages: (olderMessages) =>
+    set((state) => ({
+      messages: [...olderMessages, ...state.messages]
+    }))
 }));
