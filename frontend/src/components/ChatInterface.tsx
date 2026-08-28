@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTyping } from "../hooks/useTyping";
 import { useChatStore } from "../stores/useChatStore";
 import type Message from "../types/message";
