@@ -78,7 +78,7 @@ export default function ChatInterface() {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/channels/${activeChannelId}/messages?before=${oldestMessageId}&limit=50`,
+        `${import.meta.env.VITE_BACKEND_URL}/channels/${activeChannelId}/messages/?before=${oldestMessageId}&limit=50`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
