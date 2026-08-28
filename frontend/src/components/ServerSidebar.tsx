@@ -202,7 +202,7 @@ export default function ServerSidebar() {
       </div>
       <div className="flex flex-row items-end mt-auto">
         <span className="w-full text-sm text-text/20 font-bold">
-          Wisp 260629-02
+          Wisp 260828-01
         </span>
         <BaseActionButton
           title="Server Usage"

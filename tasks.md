@@ -1,5 +1,4 @@
 # Roadmap:
-- PWA
 - Message pagination
     - Add limit + offset query params to backend
     - Change react virtuoso to fetch new messages on full scroll

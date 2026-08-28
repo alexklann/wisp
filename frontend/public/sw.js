@@ -12,8 +12,7 @@ self.addEventListener("push", (event) => {
 
   const handlePushPromise = self.registration.showNotification(payload.title, {
     body: payload.body,
-    icon: "/icon-192x192.png",
-    // badge: "/badge.png",
+    icon: "/logo_192x.png",
     vibrate: [200, 100, 200],
   });
 
