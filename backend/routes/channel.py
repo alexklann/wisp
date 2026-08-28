@@ -23,6 +23,8 @@ router = APIRouter()
 @router.get("/{channel_id}/messages/")
 async def get_messages(
     channel_id: str,
+    before: int | None = None,
+    limit: int = 50,
     session: AsyncSession = Depends(get_session),
     user_id: str = Depends(get_current_user_id),
 ):
@@ -59,6 +61,17 @@ async def get_messages(
         .outerjoin(RepliedMessage, col(Message.reply_to_id) == RepliedMessage.id)
         .outerjoin(RepliedUser, col(RepliedMessage.sender_id) == RepliedUser.id)
         .where(Message.channel_id == channel_id)
+    )
+
+    if before is not None:
+        statement = statement.where(col(Message.id) < before)
+
+    # We order by descending message_id order,
+    # since we want to apply limit and offset from the newest message onwards.
+    statement = (
+        statement
+        .order_by(col(Message.id).desc())
+        .limit(limit)
     )
 
     result = await session.exec(statement)
@@ -128,5 +141,9 @@ async def get_messages(
                 )
                 for a in attachments
             ]
+
+    # We do this since we reversed the list during the intial database query.
+    # Otherwise, the oldest messages would come first.
+    messages_with_users.reverse()
 
     return messages_with_users

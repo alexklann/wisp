@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTyping } from "../hooks/useTyping";
 import { useChatStore } from "../stores/useChatStore";
 import type Message from "../types/message";
@@ -12,6 +12,7 @@ import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { useUIStore } from "../stores/useUIStore";
 import HamburgerIcon from "../icons/HamburgerIcon";
 import { useWebsocket } from "../hooks/useWebsocket";
+import { useAuthStore } from "../stores/useAuthStore";
 
 const START_INDEX = 1_000_000;
 
@@ -19,6 +20,13 @@ export default function ChatInterface() {
   const messages = useChatStore((state) => state.messages);
   const activeChannelId = useChatStore((state) => state.activeChannelId);
   const channels = useChatStore((state) => state.channels);
+  const prependMessages = useChatStore((state) => state.prependMessages);
+
+  const token = useAuthStore((state) => state.token);
+
+  const [hasMoreMessages, setHasMoreMessages] = useState<boolean>(true);
+  const isLoadingMessages = useRef(false);
+  const [firstItemIndex, setFirstItemIndex] = useState(START_INDEX);
 
   const activeChannel = channels.find((ch) => ch.id === activeChannelId);
 
@@ -60,33 +68,39 @@ export default function ChatInterface() {
     }
   };
 
-  const groupedMessages = useMemo(() => {
-    const groups: Message[][] = [];
-    let currentGroup: Message[] = [];
-
-    for (const msg of messages) {
-      if (currentGroup.length === 0) {
-        currentGroup.push(msg);
-        continue;
-      }
-      const lastMsg = currentGroup[currentGroup.length - 1];
-
-      const isTimeExceeded =
-        new Date(msg.created_at).getTime() -
-        new Date(lastMsg.created_at).getTime() >=
-        5 * 60 * 1000;
-      const isDifferentSender = msg.sender_id !== lastMsg.sender_id;
-
-      if (isTimeExceeded || currentGroup.length >= 10 || isDifferentSender) {
-        groups.push(currentGroup);
-        currentGroup = [msg];
-      } else {
-        currentGroup.push(msg);
-      }
+  const handleLoadOlderMessages = async () => {
+    if (isLoadingMessages.current || !hasMoreMessages || messages.length === 0) {
+      return;
     }
-    if (currentGroup.length > 0) groups.push(currentGroup);
-    return groups;
-  }, [messages]);
+
+    const oldestMessageId = messages[0].id;
+    isLoadingMessages.current = true;
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/channels/${activeChannelId}/messages?before=${oldestMessageId}&limit=50`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const olderMessages: Message[] = await response.json();
+        if (olderMessages.length > 0) {
+          setFirstItemIndex((prev) => prev - olderMessages.length);
+          prependMessages(olderMessages);
+        } else {
+          setHasMoreMessages(false);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load older messages: ", err);
+    } finally {
+      isLoadingMessages.current = false;
+    }
+  }
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -101,6 +115,21 @@ export default function ChatInterface() {
     });
     return () => window.removeEventListener("keypress", handleKeyPress);
   }, [selectedImageURL, setSelectedImageURL]);
+
+  useEffect(() => {
+    setFirstItemIndex(START_INDEX);
+    isLoadingMessages.current = false;
+    setHasMoreMessages(true);
+  }, [activeChannelId]);
+
+  function isMessageConsecutive(current: Message, prev?: Message): boolean {
+    if (!prev) return false;
+    const isTimeExceeded =
+      new Date(current.created_at).getTime() - new Date(prev.created_at).getTime() >=
+      5 * 60 * 1000;
+    const isDifferentSender = current.sender_id !== prev.sender_id;
+    return !isTimeExceeded && !isDifferentSender;
+  }
 
   return (
     <>
@@ -170,25 +199,33 @@ export default function ChatInterface() {
           </button>
           <span className="text-lg font-bold">{activeChannel && activeChannel.name}</span>
         </div>
-        <div className="flex flex-col h-full overflow-y-auto">
+        <div className="flex flex-col h-full flex-1">
+          {/*
+          **A quick side-note about this:**
+          As far as I'm concerned, building a scrollable message list is super hard.
+          I think using Virtuoso is the best I can do right now. It's still super jittery, but whatever.
+          If anyone reading this has an idea on how to fix this, then please open an issue and let me know!
+          */}
           <Virtuoso
             ref={virtuosoRef}
-            data={groupedMessages}
-            firstItemIndex={START_INDEX}
-            followOutput={"smooth"}
-            initialTopMostItemIndex={START_INDEX - 1}
+            data={messages}
+            firstItemIndex={firstItemIndex}
             alignToBottom={true}
-            startReached={() =>
-              console.log("Start reached; implement loading later!")
-            }
-            itemContent={(_index, group) =>
-              group.map((message: Message, idx: number) => (
+            computeItemKey={(_index, message) => message.id}
+            initialTopMostItemIndex={messages.length - 1}
+            startReached={handleLoadOlderMessages}
+            itemContent={(index, message) => {
+              const arrayIndex = index - firstItemIndex;
+              const prevMessage = messages[arrayIndex - 1];
+
+              return (
                 <MessageItem
                   key={`message_${message.id}`}
                   message={message}
-                  isConsecutive={idx > 0}
+                  isConsecutive={isMessageConsecutive(message, prevMessage)}
                 />
-              ))
+              );
+            }
             }
           />
           {messages && messages.length == 0 && (
