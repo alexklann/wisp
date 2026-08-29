@@ -64,6 +64,7 @@ code {
 }
 
 @media (min-width: 320px) {
+
     hr,
     img {
         width: 100%;
@@ -71,8 +72,12 @@ code {
 }
 
 @media (min-width: 801px) {
-    hr,
+
+    hr {
+        width: 32rem;
+    }
+
     img {
-        width: 24rem;
+        width: 100%;
     }
 }

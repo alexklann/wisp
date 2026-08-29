@@ -117,8 +117,15 @@ async def get_messages(
 
     if messages_with_users:
         message_ids = [m.id for m in messages_with_users]
+        replied_ids = [
+            m.replied_message.id
+            for m in messages_with_users
+            if m.replied_message is not None
+        ]
+        all_ids = list(set(message_ids + replied_ids))
+        
         statement = select(Attachment).where(
-            col(Attachment.message_id).in_(message_ids)
+            col(Attachment.message_id).in_(all_ids)
         )
         result = await session.exec(statement)
 
@@ -142,7 +149,12 @@ async def get_messages(
                 for a in attachments
             ]
 
-    # We do this since we reversed the list during the intial database query.
+            if msg.replied_message:
+                msg.replied_message.has_attachment = (
+                    msg.replied_message.id in attachments_map
+                )
+
+    # We do this since we reversed the list during the initial database query.
     # Otherwise, the oldest messages would come first.
     messages_with_users.reverse()
 

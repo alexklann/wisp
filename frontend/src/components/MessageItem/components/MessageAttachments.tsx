@@ -27,8 +27,8 @@ export default function MessageAttachments({
               );
               setSelectedImageFilename(attachment.id);
             }}
-            className="max-w-48 cursor-pointer rounded-lg"
-            src={`${import.meta.env.VITE_BACKEND_URL}${attachment.url}`}
+            className="max-w-[90%] md:max-w-72 cursor-pointer rounded-lg"
+            src={`${import.meta.env.VITE_BACKEND_URL}${attachment.url.split(".webp")[0]}_thumb.webp`}
           />
         ) : attachment.file_type.startsWith("audio/") ? (
           <AudioAttachment attachment={attachment} />

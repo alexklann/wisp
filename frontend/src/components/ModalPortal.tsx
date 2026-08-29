@@ -16,10 +16,10 @@ export default function ModalPortal() {
       }
     };
 
-    window.addEventListener("keypress", (e) => {
+    window.addEventListener("keydown", (e) => {
       handleKeyPress(e);
     });
-    return () => window.removeEventListener("keypress", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
   }, [closeModal]);
 
   if (activeModal === null) {

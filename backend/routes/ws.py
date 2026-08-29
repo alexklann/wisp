@@ -88,10 +88,21 @@ async def process_send_message(
 
     reply_data = None
     if replied_msg and replied_user and replied_msg.id is not None:
+        has_reply_attachment = bool(
+            (
+                await session.exec(
+                    select(Attachment.id)
+                    .where(col(Attachment.message_id) == replied_msg.id)
+                    .limit(1)
+                )
+            ).first()
+        )
+        
         reply_data = RepliedMessagePreview(
             id=replied_msg.id,
             content=replied_msg.content,
             sender_username=replied_user.username,
+            has_attachment=has_reply_attachment
         )
 
     response = ChatMessageResponse(
@@ -107,10 +118,16 @@ async def process_send_message(
         event.channel_id, {"type": "message", **response.model_dump(mode="json")}
     )
 
+    push_body = event.content.strip() if event.content and event.content.strip() else ""
+    if not push_body and linked_attachments:
+            push_body = "Sent an attachment"
+    elif not push_body:
+        push_body = "Sent a message"
+
     success = await send_push_notification(
         server_id=db_channel.server_id,
         title=db_user.display_name,
-        body=event.content,
+        body=push_body,
         session=session,
         sender_id=user_id
     )

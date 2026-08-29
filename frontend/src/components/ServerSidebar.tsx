@@ -89,7 +89,7 @@ export default function ServerSidebar() {
 
   const fetchMessages = async (channelId: string) => {
     const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/channels/${channelId}/messages/`,
+      `${import.meta.env.VITE_BACKEND_URL}/channels/${channelId}/messages/?offset=0&limit=150`,
       {
         method: "GET",
         headers: {
@@ -100,7 +100,6 @@ export default function ServerSidebar() {
 
     if (response.ok) {
       const responseBody = await response.json();
-      console.log(responseBody);
       setMessages(responseBody);
     } else {
       console.error("Could not fetch messages");
@@ -202,7 +201,7 @@ export default function ServerSidebar() {
       </div>
       <div className="flex flex-row items-end mt-auto">
         <span className="w-full text-sm text-text/20 font-bold">
-          Wisp 260828-02
+          Wisp 260829-01
         </span>
         <BaseActionButton
           title="Server Usage"

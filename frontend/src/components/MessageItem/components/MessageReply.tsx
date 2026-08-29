@@ -16,7 +16,13 @@ export default function MessageReply({
       <span className="text-xs font-bold">
         {messagePreview.sender_username}:
       </span>
-      <span className="w-[75%] truncate text-xs">{messagePreview.content}</span>
+      <span className="w-[75%] truncate text-xs">
+        {messagePreview.content && messagePreview.content.trim().length > 0 ? (
+          messagePreview.content
+        ) : messagePreview.has_attachment ? (
+          "[Attachment]"
+        ) : "Message not found"}
+      </span>
     </div>
   );
 }

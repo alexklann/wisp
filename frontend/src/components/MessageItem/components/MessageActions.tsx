@@ -11,6 +11,7 @@ interface Props {
   messagePreviewContent: string | null;
   senderUsername: string;
   senderId: string;
+  hasAttachments: boolean;
 }
 
 export default function MessageActions({
@@ -18,6 +19,7 @@ export default function MessageActions({
   messagePreviewContent,
   senderUsername,
   senderId,
+  hasAttachments,
 }: Props) {
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
@@ -34,6 +36,9 @@ export default function MessageActions({
   const setReplyingMessageUsername = useUIStore(
     (state) => state.setReplyingMessageUsername,
   );
+  const setReplyingMessageHasAttachment = useUIStore(
+    (state) => state.setReplyingMessageHasAttachment,
+  );
 
   const deleteMessageStorage = useChatStore((state) => state.deleteMessage);
 
@@ -41,6 +46,7 @@ export default function MessageActions({
     setReplyingMessageId(messageId);
     setReplyingMessageContent(messagePreviewContent);
     setReplyingMessageUsername(senderUsername);
+    setReplyingMessageHasAttachment(hasAttachments);
   };
 
   const onEditMessageButtonClicked = () => {

@@ -78,7 +78,7 @@ export default function ChatInterface() {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/channels/${activeChannelId}/messages/?before=${oldestMessageId}&limit=50`,
+        `${import.meta.env.VITE_BACKEND_URL}/channels/${activeChannelId}/messages/?before=${oldestMessageId}&limit=150`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -131,19 +131,31 @@ export default function ChatInterface() {
     return !isTimeExceeded && !isDifferentSender;
   }
 
+  // Allow for escape to close overlay when viewing fullscreen image
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && selectedImageURL !== null) {
+        setSelectedImageURL(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedImageURL, setSelectedImageURL]);
+
   return (
     <>
       {socket === null && (
         <div className="flex justify-center items-center absolute h-screen w-screen inset-0 bg-black/50 z-50">
           {attemptCount <= 10 ? (
             <span className="text-center text-white font-bold text-4xl">
-              Connection lost, reconnecting...
+              Connecting to backend...
               <br />
               Attempt: {attemptCount} / 10
             </span>
           ) : (
             <span className="text-white font-bold text-4xl">
-              Failed to reconnect within 10 attempts
+              Failed to connect within 10 attempts
             </span>
           )}
         </div>
@@ -151,7 +163,7 @@ export default function ChatInterface() {
       {selectedImageURL !== null && (
         <div
           onClick={() => setSelectedImageURL(null)}
-          className="flex justify-center items-center absolute inset-0 z-90 bg-black/70 p-12"
+          className="flex justify-center items-center fixed inset-0 z-90 bg-black/70 p-12"
         >
           <div
             onClick={(event) => event.stopPropagation()}
@@ -180,7 +192,7 @@ export default function ChatInterface() {
           </div>
           <img
             onClick={(event) => event.stopPropagation()}
-            className="max-w-full max-h-full object-contain"
+            className="max-w-full max-h-full object-contain select-none"
             src={selectedImageURL}
           />
         </div>
@@ -212,11 +224,14 @@ export default function ChatInterface() {
             firstItemIndex={firstItemIndex}
             alignToBottom={true}
             computeItemKey={(_index, message) => message.id}
+            followOutput="auto"
             initialTopMostItemIndex={messages.length - 1}
             startReached={handleLoadOlderMessages}
             itemContent={(index, message) => {
               const arrayIndex = index - firstItemIndex;
               const prevMessage = messages[arrayIndex - 1];
+
+              console.log(message.replied_message);
 
               return (
                 <MessageItem

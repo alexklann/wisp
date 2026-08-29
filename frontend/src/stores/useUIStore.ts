@@ -17,6 +17,9 @@ interface UIState {
   replyingMessageUsername: string | null;
   setReplyingMessageUsername: (username: string | null) => void;
 
+  replyingMessageHasAttachment: boolean;
+  setReplyingMessageHasAttachment: (state: boolean) => void;
+
   clearReplyingMessage: () => void;
 
   selectedImageURL: string | null;
@@ -50,6 +53,10 @@ export const useUIStore = create<UIState>((set) => ({
   replyingMessageUsername: null,
   setReplyingMessageUsername: (username) =>
     set({ replyingMessageUsername: username }),
+
+  replyingMessageHasAttachment: false,
+  setReplyingMessageHasAttachment: (state) =>
+    set({ replyingMessageHasAttachment: state }),
 
   clearReplyingMessage: () =>
     set({

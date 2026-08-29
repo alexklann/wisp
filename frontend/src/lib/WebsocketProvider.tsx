@@ -38,6 +38,18 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
     return () => subscribers.current.delete(callback);
   }, []);
 
+  const getNotificationBody = (message: Message): string => {
+    if (message.content && message.content.trim().length > 0) {
+      return message.content;
+    }
+
+    if (message.attachments && message.attachments.length > 0) {
+      return "Sent an attachment"
+    }
+
+    return "Sent a message";
+  };
+
   useEffect(() => {
     const connect = () => {
       console.log(
@@ -65,7 +77,7 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
 
           if (token) {
             fetch(
-              `${import.meta.env.VITE_BACKEND_URL}/channels/${activeChannelId}/messages/`,
+              `${import.meta.env.VITE_BACKEND_URL}/channels/${activeChannelId}/messages/?offset=0&limit=150`,
               {
                 method: "GET",
                 headers: {
@@ -103,7 +115,7 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
                   const notification = new Notification(
                     messageData.sender_display_name,
                     {
-                      body: messageData.content ?? "No content",
+                      body: getNotificationBody(messageData),
                     },
                   );
 

@@ -20,6 +20,7 @@ export default function MessageItem({ message, isConsecutive }: Props) {
         messagePreviewContent={message.content}
         senderUsername={message.sender_username}
         senderId={message.sender_id}
+        hasAttachments={message.attachments.length > 0}
       />
       <MessageHeader
         avatarUrl={message.sender_avatar_url}

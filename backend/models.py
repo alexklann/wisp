@@ -120,6 +120,7 @@ class RepliedMessagePreview(BaseModel):
     id: int
     content: Optional[str]
     sender_username: str
+    has_attachment: bool = False
 
 
 class ChatMessageResponse(BaseModel):

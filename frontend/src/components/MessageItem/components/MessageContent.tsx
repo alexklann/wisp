@@ -3,6 +3,7 @@ import rehypeExternalLinks from "rehype-external-links";
 import remarkGfm from "remark-gfm";
 import { useUIStore } from "../../../stores/useUIStore";
 import InlineMessageEditor from "../../InlineMessageEditor";
+import remarkBreaks from "remark-breaks";
 
 export default function MessageContent({
   messageId,
@@ -28,7 +29,7 @@ export default function MessageContent({
         rehypePlugins={[
           [rehypeExternalLinks, { target: "_blank", rel: ["noreferrer"] }],
         ]}
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, remarkBreaks]}
       >
         {messageContent}
       </Markdown>

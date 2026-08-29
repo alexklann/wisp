@@ -28,4 +28,5 @@ export interface RepliedMessagePreview {
   id: number;
   content: string;
   sender_username: string;
+  has_attachment: boolean;
 }

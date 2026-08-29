@@ -24,6 +24,7 @@ export default function ChatInput() {
   const replyingMessageUsername = useUIStore(
     (state) => state.replyingMessageUsername,
   );
+  const replyingMessageHasAttachment = useUIStore((state) => state.replyingMessageHasAttachment)
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -62,7 +63,16 @@ export default function ChatInput() {
           <span>Replying to:</span>
           <div className="flex flex-row gap-1 px-2 py-1 border border-stroke rounded-lg">
             <span className="font-bold">{replyingMessageUsername}:</span>
-            <span>{replyingMessageContent}</span>
+            <span>
+              {replyingMessageContent &&
+                replyingMessageContent.length > 0 ? (
+                replyingMessageContent
+              ) : (replyingMessageHasAttachment) ? (
+                "[Attachment]"
+              ) : (
+                "Message not found"
+              )}
+            </span>
           </div>
         </div>
       )}

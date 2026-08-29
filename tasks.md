@@ -49,3 +49,6 @@ User B: [ctx1] but good for him
 - Message Pagination + Paginated Loading with Virtuoso
     - Currently, this is super jittery and ugly looking.
     - Maybe go with a flex-col-reverse list? *requires major refactoring*
+
+**Refactor**:
+- Move "join server" button into "create server" modal
