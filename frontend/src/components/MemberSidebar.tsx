@@ -32,7 +32,7 @@ export default function MemberSidebar() {
     setFetchStatus("loading");
 
     const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/servers/${activeServerId}/members`,
+      `${import.meta.env.VITE_BACKEND_URL}/servers/${activeServerId}/members/`,
       {
         method: "GET",
         headers: {
