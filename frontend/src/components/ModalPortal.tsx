@@ -2,8 +2,8 @@ import { useEffect } from "react";
 import { useUIStore } from "../stores/useUIStore";
 import ServerUsageModal from "./ServerUsageModal";
 import CreateChannelModal from "./CreateChannelModal";
-import CreateServerModal from "./CreateServerModal";
-import JoinServerModal from "./JoinServerModal";
+import CreateOrJoinServerModal from "./CreateOrJoinServerModal";
+import UserEditModal from "./UserEditModal";
 
 export default function ModalPortal() {
   const activeModal = useUIStore((state) => state.activeModal);
@@ -31,14 +31,14 @@ export default function ModalPortal() {
       onClick={() => closeModal()}
       className="absolute inset-0 flex justify-center items-center bg-black/75 z-90"
     >
-      {activeModal === "joinServer" ? (
-        <JoinServerModal />
-      ) : activeModal === "createServer" ? (
-        <CreateServerModal />
+      {activeModal === "createServer" ? (
+        <CreateOrJoinServerModal />
       ) : activeModal === "createChannel" ? (
         <CreateChannelModal />
-      ) : (
-        activeModal === "serverUsage" && <ServerUsageModal />
+      ) : activeModal === "serverUsage" ? (
+        <ServerUsageModal />
+      ) : activeModal === "userEdit" && (
+        <UserEditModal />
       )}
     </div>
   );

@@ -12,7 +12,7 @@ from starlette.responses import FileResponse
 
 from database import get_session
 from models import Attachment
-from routes import auth, channel, messages, push, server, upload, ws
+from routes import auth, channel, messages, push, server, upload, ws, user
 
 import base64
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -75,6 +75,7 @@ app.include_router(server.router, prefix="/servers", tags=["Server Endpoints"])
 app.include_router(upload.router, prefix="/upload", tags=["Upload Endpoints"])
 app.include_router(messages.router, prefix="/messages", tags=["Messages Endpoint"])
 app.include_router(push.router, prefix="/push", tags=["Push API Endpoint"])
+app.include_router(user.router, prefix="/users", tags=["Users Endpoint"])
 app.include_router(ws.router)
 
 raw_origins = os.getenv("FRONTEND_CORS_ORIGINS", "")

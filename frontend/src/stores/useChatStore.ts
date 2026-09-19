@@ -15,7 +15,7 @@ interface ChatState {
   setChannels: (channels: Channel[]) => void;
   setMessages: (messages: Message[]) => void;
 
-  setActiveServer: (serverId: string) => void;
+  setActiveServer: (serverId: string | null) => void;
   setActiveChannel: (channelId: string | null) => void;
 
   addMessage: (message: Message) => void;

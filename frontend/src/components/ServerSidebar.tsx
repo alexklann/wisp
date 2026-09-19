@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { useChatStore } from "../stores/useChatStore";
 import { useAuthStore } from "../stores/useAuthStore";
-import type Server from "../types/server";
 import type Channel from "../types/channel";
 import { useWebsocket } from "../hooks/useWebsocket";
 import { useUIStore } from "../stores/useUIStore";
 import CloseIcon from "../icons/CloseIcon";
 import HDDIcon from "../icons/HDDIcon";
 import BaseActionButton from "./BaseActionButton";
+import UserIcon from "../icons/UserIcon";
 
 export default function ServerSidebar() {
   const token = useAuthStore((state) => state.token);
@@ -132,29 +132,27 @@ export default function ServerSidebar() {
           {serverFetchStatus === "error" && <span>Error fetching servers</span>}
           {servers &&
             servers.length > 0 &&
-            servers.map((server: Server) => {
-              return (
-                <div
-                  key={`server_${server.id}`}
-                  onClick={() => {
-                    fetchChannels(server.id);
-                    setActiveChannel(null);
-                    setMessages([]);
-                    setActiveServer(server.id);
-                  }}
-                  className={`w-full border hover:border-brand-pink cursor-pointer rounded-lg p-2 ${activeServerId === server.id ? "border-brand-pink" : "border-stroke"}`}
-                >
-                  <span className="text-sm text-trim-both">{server.name}</span>
-                </div>
-              );
-            })}
+            <select
+              defaultValue={""}
+              style={{
+                WebkitAppearance: "none",
+                MozAppearance: "none",
+                textIndent: "1px",
+                textOverflow: "",
+              }}
+              onChange={(e) => {
+                fetchChannels(e.currentTarget.value);
+                setActiveChannel(null);
+                setMessages([]);
+                setActiveServer(e.currentTarget.value);
+              }} className="text-sm w-full border border-stroke hover:border-brand-pink cursor-pointer rounded-lg p-2 focus:outline-0">
+              <option disabled value={""}>Select Server</option>
+              {servers.map((server) => (
+                <option value={server.id}>{server.name}</option>
+              ))}
+            </select>
+          }
         </div>
-        <button
-          className="w-full text-center py-4 hover:underline cursor-pointer"
-          onClick={() => openModal("joinServer")}
-        >
-          Join Server
-        </button>
         <div className="flex flex-row gap-2 p-2 w-full items-center justify-between">
           <span className="text-xs text-white/75 font-medium">Channels</span>
           {activeServerId !== null && (
@@ -203,14 +201,22 @@ export default function ServerSidebar() {
       </div>
       <div className="flex flex-row items-end mt-auto">
         <span className="w-full text-sm text-text/20 font-bold">
-          Wisp 5 a1.0.0
+          Wisp 5 a1.1.0
         </span>
-        <BaseActionButton
-          title="Server Usage"
-          onClick={() => openModal("serverUsage")}
-        >
-          <HDDIcon className="text-text w-[75%] aspect-square" />
-        </BaseActionButton>
+        <div className="flex flex-row gap-2">
+          <BaseActionButton
+            title="Server Usage"
+            onClick={() => openModal("serverUsage")}
+          >
+            <HDDIcon className="text-text w-[75%] aspect-square" />
+          </BaseActionButton>
+          <BaseActionButton
+            title="Server Usage"
+            onClick={() => openModal("userEdit")}
+          >
+            <UserIcon className="text-text w-[75%] aspect-square" />
+          </BaseActionButton>
+        </div>
       </div>
     </aside>
   );

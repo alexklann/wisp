@@ -1,15 +1,13 @@
 # Roadmap:
-- User List / Online Status
-    - Add endpoint that returns all active users
-    - Add websocket event that logs user delta events
-    - Add sidebar that shows all online users vs. all offline users
-- Pinned Messages
-    - Add new flag to message in database `pinned: 0/1`
-    - Add small popup that shows all pinned messages
 - User Editing (bio, profile picture, display name, password)
 - File Management (admin panel or per-server [guilded like])
     - Allow for a specific frontend page / module that shows all uploaded files / images / videos to a server
     - Allows for easy administration and deletion of old images / videos
+- Emojis
+- Pinned Messages
+    - Add new flag to message in database `pinned: 0/1`
+    - Add small popup that shows all pinned messages
+- Reactions
 - Forums
 - Commands
     - /ai [model_id] [prompt]

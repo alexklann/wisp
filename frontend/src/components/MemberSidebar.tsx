@@ -3,7 +3,7 @@ import { useChatStore } from "../stores/useChatStore";
 import { useAuthStore } from "../stores/useAuthStore";
 import { useUIStore } from "../stores/useUIStore";
 import CloseIcon from "../icons/CloseIcon";
-import SpinnerIcon from "../icons/SpinnerIcon";
+// import SpinnerIcon from "../icons/SpinnerIcon";
 import MessageAvatar from "./MessageItem/components/MessageAvatar";
 
 interface Member {
@@ -55,7 +55,11 @@ export default function MemberSidebar() {
     if (activeServerId === null) return;
 
     fetchMembers();
-    const interval = setInterval(fetchMembers, 15_000);
+    const interval = setInterval(async () => {
+      if (document.hasFocus()) {
+        await fetchMembers();
+      }
+    }, 15_000);
     return () => clearInterval(interval);
   }, [activeServerId])
 
@@ -112,7 +116,8 @@ export default function MemberSidebar() {
           </div>
         </div>
       </div>
-      <button title="Updated User List" onClick={async () => fetchMembers()} className="flex flex-row items-center justify-between mt-auto cursor-pointer">
+      {/* Rather annoying, so that's why it's disabled for now */}
+      {/* <button title="Updated User List" onClick={async () => fetchMembers()} className="flex flex-row items-center justify-between mt-auto cursor-pointer">
         {fetchStatus === "loading" ? (
           <div className="flex flex-row gap-2 items-center">
             <SpinnerIcon className="text-text/40 animate-spin h-4 w-4" />
@@ -125,7 +130,7 @@ export default function MemberSidebar() {
             Last updated: just now
           </span>
         )}
-      </button>
+      </button> */}
     </aside>
   );
 }

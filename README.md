@@ -1,4 +1,4 @@
-# Wisp
+# Wisp 5
 A full-stack open-source alternative to Discord with real-time messaging and file sharing.
 Built for speed and simplicity with **Vite+React** and **FastAPI**.
 
