@@ -9,8 +9,9 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette.exceptions import HTTPException
 
 from database import get_session
-from models import Channel, Server, ServerMember, ServerWithMembership
+from models import Channel, Server, ServerMember, ServerWithMembership, User
 from routes.auth import get_current_user_id
+from core.connection_manager import get_connection_manager, ConnectionManager
 
 load_dotenv()
 
@@ -229,6 +230,7 @@ async def get_server_members(
     server_id: str,
     session: AsyncSession = Depends(get_session),
     user_id: str = Depends(get_current_user_id),
+    manager: ConnectionManager =  Depends(get_connection_manager),
 ):
     statement = (
         select(ServerMember)
@@ -244,8 +246,24 @@ async def get_server_members(
             detail="You're not member of this server",
         )
 
-    statement = select(ServerMember).where(ServerMember.server_id == server_id)
-    result = await session.exec(statement)
-    server_members = result.all()
+    statement = (
+        select(ServerMember, User)
+        .join(User, col(User.id) == ServerMember.user_id)
+        .where(ServerMember.server_id == server_id)
+    )
+    rows = (await session.exec(statement)).all()
+    online_ids = set(manager.active_users.keys())
 
-    return server_members
+    return [
+        {
+            "user_id": m.user_id,
+            "role": m.role,
+            "server_id": m.server_id,
+            "joined_at": m.joined_at,
+            "username": u.username,
+            "display_name": u.display_name,
+            "avatar_url": u.avatar_url,
+            "online": m.user_id in online_ids,
+        }
+        for m, u in rows
+    ]

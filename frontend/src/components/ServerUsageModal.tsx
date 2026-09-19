@@ -88,7 +88,6 @@ export default function ServerUsageModal() {
         setServerUsage(responseBody);
         setFetchStatus("success");
       } else {
-        console.log(response.text);
         setFetchStatus("error");
       }
     };

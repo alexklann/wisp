@@ -6,6 +6,7 @@ import ChatInterface from "./components/ChatInterface";
 import ServerSidebar from "./components/ServerSidebar";
 import ModalPortal from "./components/ModalPortal";
 import { useEffect } from "react";
+import MemberSidebar from "./components/MemberSidebar";
 
 /**
  * AI-Generated with DeepSeek-v4 Flash
@@ -88,6 +89,7 @@ export default function App() {
           <div className="w-screen h-screen flex flex-row bg-background p-3 gap-3">
             <ServerSidebar />
             <ChatInterface />
+            <MemberSidebar />
           </div>
         </WebsocketProvider>
       </>

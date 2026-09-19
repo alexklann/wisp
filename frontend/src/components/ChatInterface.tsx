@@ -32,7 +32,9 @@ export default function ChatInterface() {
 
   const { socket, attemptCount } = useWebsocket();
 
-  const setIsSidebarOpen = useUIStore((state) => state.setIsSidebarOpen);
+  const setIsServerSidebarOpen = useUIStore((state) => state.setIsServerSidebarOpen);
+  const setIsMemberSidebarOpen = useUIStore((state) => state.setIsMemberSidebarOpen);
+
 
   const selectedImageURL = useUIStore((state) => state.selectedImageURL);
   const setSelectedImageURL = useUIStore((state) => state.setSelectedImageURL);
@@ -203,13 +205,20 @@ export default function ChatInterface() {
       >
         <div className="md:hidden flex flex-row items-center p-2 gap-4 bg-surface w-full rounded-lg border-stroke border-2">
           <button
-            onClick={() => setIsSidebarOpen(true)}
+            onClick={() => setIsServerSidebarOpen(true)}
             title="Open in external tab"
             className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
           >
             <HamburgerIcon className="text-text" />
           </button>
-          <span className="text-lg font-bold">{activeChannel && activeChannel.name}</span>
+          <span className="text-lg font-bold flex-1">{activeChannel && activeChannel.name}</span>
+          <button
+            onClick={() => setIsMemberSidebarOpen(true)}
+            title="Open in external tab"
+            className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
+          >
+            <HamburgerIcon className="text-text" />
+          </button>
         </div>
         <div className="flex flex-col h-full flex-1">
           {/*
@@ -230,8 +239,6 @@ export default function ChatInterface() {
             itemContent={(index, message) => {
               const arrayIndex = index - firstItemIndex;
               const prevMessage = messages[arrayIndex - 1];
-
-              console.log(message.replied_message);
 
               return (
                 <MessageItem

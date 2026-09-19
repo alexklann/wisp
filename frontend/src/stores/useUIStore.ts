@@ -32,8 +32,11 @@ interface UIState {
   openModal: (modal: ModalType) => void;
   closeModal: () => void;
 
-  isSidebarOpen: boolean;
-  setIsSidebarOpen: (state: boolean) => void;
+  isServerSidebarOpen: boolean;
+  setIsServerSidebarOpen: (state: boolean) => void;
+
+  isMemberSidebarOpen: boolean;
+  setIsMemberSidebarOpen: (state: boolean) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -76,6 +79,9 @@ export const useUIStore = create<UIState>((set) => ({
   openModal: (modal) => set({ activeModal: modal }),
   closeModal: () => set({ activeModal: null }),
 
-  isSidebarOpen: false,
-  setIsSidebarOpen: (state) => set({ isSidebarOpen: state }),
+  isServerSidebarOpen: false,
+  setIsServerSidebarOpen: (state) => set({ isServerSidebarOpen: state }),
+
+  isMemberSidebarOpen: false,
+  setIsMemberSidebarOpen: (state) => set({ isMemberSidebarOpen: state }),
 }));

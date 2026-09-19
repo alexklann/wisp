@@ -32,8 +32,8 @@ export default function ServerSidebar() {
   const setMessages = useChatStore((state) => state.setMessages);
 
   const openModal = useUIStore((state) => state.openModal);
-  const isSidebarOpen = useUIStore((state) => state.isSidebarOpen);
-  const setIsSidebarOpen = useUIStore((state) => state.setIsSidebarOpen);
+  const isServerSidebarOpen = useUIStore((state) => state.isServerSidebarOpen);
+  const setIsServerSidebarOpen = useUIStore((state) => state.setIsServerSidebarOpen);
 
   useEffect(() => {
     if (!token) return;
@@ -108,12 +108,12 @@ export default function ServerSidebar() {
 
   return (
     <aside
-      className={`z-20 fixed m-3 inset-0 md:m-0 md:translate-x-0 left-0 md:relative flex flex-col gap-2 transform transition-transform duration-300 ease-in-out bg-surface-base text-text min-w-64 border p-3 border-stroke rounded-xl ${isSidebarOpen ? "translate-x-0" : "translate-x-[calc(-100%-12px)]"}`}
+      className={`z-20 fixed m-3 inset-0 md:m-0 md:translate-x-0 left-0 md:relative flex flex-col gap-2 transform transition-transform duration-300 ease-in-out bg-surface-base text-text min-w-64 border p-3 border-stroke rounded-xl ${isServerSidebarOpen ? "translate-x-0" : "translate-x-[calc(-100%-12px)]"}`}
     >
       <div className="w-full">
         <div className="md:hidden bg-surface rounded-lg border-stroke border-2 p-2">
           <button
-            onClick={() => setIsSidebarOpen(false)}
+            onClick={() => setIsServerSidebarOpen(false)}
             className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
           >
             <CloseIcon className="text-text" />
@@ -138,6 +138,8 @@ export default function ServerSidebar() {
                   key={`server_${server.id}`}
                   onClick={() => {
                     fetchChannels(server.id);
+                    setActiveChannel(null);
+                    setMessages([]);
                     setActiveServer(server.id);
                   }}
                   className={`w-full border hover:border-brand-pink cursor-pointer rounded-lg p-2 ${activeServerId === server.id ? "border-brand-pink" : "border-stroke"}`}
@@ -179,7 +181,7 @@ export default function ServerSidebar() {
 
                     fetchMessages(channel.id);
                     setActiveChannel(channel.id);
-                    setIsSidebarOpen(false);
+                    setIsServerSidebarOpen(false);
 
                     socket.send(
                       JSON.stringify({
@@ -201,7 +203,7 @@ export default function ServerSidebar() {
       </div>
       <div className="flex flex-row items-end mt-auto">
         <span className="w-full text-sm text-text/20 font-bold">
-          Wisp 260829-01
+          Wisp 5 a1.0.0
         </span>
         <BaseActionButton
           title="Server Usage"
