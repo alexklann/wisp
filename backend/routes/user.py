@@ -24,6 +24,7 @@ class EditSelfRequestBody(BaseModel):
     username: str | None = None
     display_name: str | None = None
     bio: str | None = None
+    avatar_url: str | None = None
 
 @router.patch("/me/")
 async def edit_self(
@@ -46,6 +47,7 @@ async def edit_self(
     user.username = request_body.username or user.username
     user.display_name = request_body.display_name or user.display_name
     user.bio = request_body.bio or user.bio
+    user.avatar_url = request_body.avatar_url or user.avatar_url
 
     session.add(user)
     await session.commit()
