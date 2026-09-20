@@ -1,9 +1,9 @@
 # Roadmap:
-- User Editing (bio, profile picture, display name, password)
 - File Management (admin panel or per-server [guilded like])
     - Allow for a specific frontend page / module that shows all uploaded files / images / videos to a server
     - Allows for easy administration and deletion of old images / videos
 - Emojis
+- User cards
 - Pinned Messages
     - Add new flag to message in database `pinned: 0/1`
     - Add small popup that shows all pinned messages

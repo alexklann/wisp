@@ -10,6 +10,9 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss()],
     server: {
       allowedHosts: hosts,
+      watch: {
+        ignored: ["**/src-tauri/**"],
+      }
     },
   };
 });
