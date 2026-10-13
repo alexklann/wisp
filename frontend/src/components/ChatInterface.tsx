@@ -14,8 +14,6 @@ import HamburgerIcon from "../icons/HamburgerIcon";
 import { useWebsocket } from "../hooks/useWebsocket";
 import { useAuthStore } from "../stores/useAuthStore";
 
-const START_INDEX = 1_000_000;
-
 export default function ChatInterface() {
   const messages = useChatStore((state) => state.messages);
   const activeChannelId = useChatStore((state) => state.activeChannelId);
