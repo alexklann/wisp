@@ -3,6 +3,8 @@ import type Server from "../types/server";
 import type Channel from "../types/channel";
 import type Message from "../types/message";
 
+const START_INDEX = 1_000_000;
+
 interface ChatState {
   servers: Server[];
   channels: Channel[];
@@ -24,6 +26,7 @@ interface ChatState {
   deleteMessage: (messageId: number) => void;
   editMessage: (messageId: number, content: string) => void;
 
+  firstItemIndex: number;
   prependMessages: (olderMessages: Message[]) => void;
 }
 
@@ -40,7 +43,12 @@ export const useChatStore = create<ChatState>((set) => ({
   setMessages: (messages) => set({ messages }),
 
   setActiveServer: (serverId) => set({ activeServerId: serverId }),
-  setActiveChannel: (channelId) => set({ activeChannelId: channelId }),
+  setActiveChannel: (channelId) =>
+    set({
+      activeChannelId: channelId,
+      messages: [],
+      firstItemIndex: START_INDEX,
+    }),
 
   addMessage: (message) =>
     set((state) => ({
@@ -62,8 +70,10 @@ export const useChatStore = create<ChatState>((set) => ({
       ),
     })),
 
+  firstItemIndex: START_INDEX,
   prependMessages: (olderMessages) =>
     set((state) => ({
-      messages: [...olderMessages, ...state.messages]
-    }))
+      messages: [...olderMessages, ...state.messages],
+      firstItemIndex: state.firstItemIndex - olderMessages.length,
+    })),
 }));

@@ -33,7 +33,9 @@ export default function ServerSidebar() {
 
   const openModal = useUIStore((state) => state.openModal);
   const isServerSidebarOpen = useUIStore((state) => state.isServerSidebarOpen);
-  const setIsServerSidebarOpen = useUIStore((state) => state.setIsServerSidebarOpen);
+  const setIsServerSidebarOpen = useUIStore(
+    (state) => state.setIsServerSidebarOpen,
+  );
 
   useEffect(() => {
     if (!token) return;
@@ -130,8 +132,7 @@ export default function ServerSidebar() {
         </div>
         <div className="flex flex-col gap-2">
           {serverFetchStatus === "error" && <span>Error fetching servers</span>}
-          {servers &&
-            servers.length > 0 &&
+          {servers && servers.length > 0 && (
             <select
               defaultValue={""}
               style={{
@@ -145,13 +146,19 @@ export default function ServerSidebar() {
                 setActiveChannel(null);
                 setMessages([]);
                 setActiveServer(e.currentTarget.value);
-              }} className="text-sm w-full border border-stroke hover:border-brand-pink cursor-pointer rounded-lg p-2 focus:outline-0">
-              <option disabled value={""}>Select Server</option>
+              }}
+              className="text-sm w-full border border-stroke hover:border-brand-pink cursor-pointer rounded-lg p-2 focus:outline-0"
+            >
+              <option key={`no_server`} disabled value={""}>
+                Select Server
+              </option>
               {servers.map((server) => (
-                <option value={server.id}>{server.name}</option>
+                <option key={`server_${server.id}`} value={server.id}>
+                  {server.name}
+                </option>
               ))}
             </select>
-          }
+          )}
         </div>
         <div className="flex flex-row gap-2 p-2 w-full items-center justify-between">
           <span className="text-xs text-white/75 font-medium">Channels</span>
@@ -173,7 +180,7 @@ export default function ServerSidebar() {
             channels.map((channel: Channel) => {
               return (
                 <div
-                  key={`server_${channel.id}`}
+                  key={`channel_${channel.id}`}
                   onClick={() => {
                     if (socket === null) return;
 

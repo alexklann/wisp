@@ -21,20 +21,23 @@ export default function ChatInterface() {
   const activeChannelId = useChatStore((state) => state.activeChannelId);
   const channels = useChatStore((state) => state.channels);
   const prependMessages = useChatStore((state) => state.prependMessages);
+  const firstItemIndex = useChatStore((state) => state.firstItemIndex);
 
   const token = useAuthStore((state) => state.token);
 
   const [hasMoreMessages, setHasMoreMessages] = useState<boolean>(true);
   const isLoadingMessages = useRef(false);
-  const [firstItemIndex, setFirstItemIndex] = useState(START_INDEX);
 
   const activeChannel = channels.find((ch) => ch.id === activeChannelId);
 
   const { socket, attemptCount } = useWebsocket();
 
-  const setIsServerSidebarOpen = useUIStore((state) => state.setIsServerSidebarOpen);
-  const setIsMemberSidebarOpen = useUIStore((state) => state.setIsMemberSidebarOpen);
-
+  const setIsServerSidebarOpen = useUIStore(
+    (state) => state.setIsServerSidebarOpen,
+  );
+  const setIsMemberSidebarOpen = useUIStore(
+    (state) => state.setIsMemberSidebarOpen,
+  );
 
   const selectedImageURL = useUIStore((state) => state.selectedImageURL);
   const setSelectedImageURL = useUIStore((state) => state.setSelectedImageURL);
@@ -71,7 +74,11 @@ export default function ChatInterface() {
   };
 
   const handleLoadOlderMessages = async () => {
-    if (isLoadingMessages.current || !hasMoreMessages || messages.length === 0) {
+    if (
+      isLoadingMessages.current ||
+      !hasMoreMessages ||
+      messages.length === 0
+    ) {
       return;
     }
 
@@ -85,13 +92,12 @@ export default function ChatInterface() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.ok) {
         const olderMessages: Message[] = await response.json();
         if (olderMessages.length > 0) {
-          setFirstItemIndex((prev) => prev - olderMessages.length);
           prependMessages(olderMessages);
         } else {
           setHasMoreMessages(false);
@@ -102,7 +108,7 @@ export default function ChatInterface() {
     } finally {
       isLoadingMessages.current = false;
     }
-  }
+  };
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -119,7 +125,6 @@ export default function ChatInterface() {
   }, [selectedImageURL, setSelectedImageURL]);
 
   useEffect(() => {
-    setFirstItemIndex(START_INDEX);
     isLoadingMessages.current = false;
     setHasMoreMessages(true);
   }, [activeChannelId]);
@@ -127,7 +132,8 @@ export default function ChatInterface() {
   function isMessageConsecutive(current: Message, prev?: Message): boolean {
     if (!prev) return false;
     const isTimeExceeded =
-      new Date(current.created_at).getTime() - new Date(prev.created_at).getTime() >=
+      new Date(current.created_at).getTime() -
+        new Date(prev.created_at).getTime() >=
       5 * 60 * 1000;
     const isDifferentSender = current.sender_id !== prev.sender_id;
     return !isTimeExceeded && !isDifferentSender;
@@ -199,10 +205,7 @@ export default function ChatInterface() {
           />
         </div>
       )}
-      <main
-        key={activeChannelId}
-        className="flex flex-col gap-1 bg-surface-base text-text h-full w-full border p-3 border-stroke rounded-xl"
-      >
+      <main className="flex flex-col gap-1 bg-surface-base text-text h-full w-full border p-3 border-stroke rounded-xl">
         <div className="md:hidden flex flex-row items-center p-2 gap-4 bg-surface w-full rounded-lg border-stroke border-2">
           <button
             onClick={() => setIsServerSidebarOpen(true)}
@@ -211,7 +214,9 @@ export default function ChatInterface() {
           >
             <HamburgerIcon className="text-text" />
           </button>
-          <span className="text-lg font-bold flex-1">{activeChannel && activeChannel.name}</span>
+          <span className="text-lg font-bold flex-1">
+            {activeChannel && activeChannel.name}
+          </span>
           <button
             onClick={() => setIsMemberSidebarOpen(true)}
             title="Open in external tab"
@@ -221,21 +226,39 @@ export default function ChatInterface() {
           </button>
         </div>
         <div className="flex flex-col h-full flex-1">
-          {/*
-          **A quick side-note about this:**
-          As far as I'm concerned, building a scrollable message list is super hard.
-          I think using Virtuoso is the best I can do right now. It's still super jittery, but whatever.
-          If anyone reading this has an idea on how to fix this, then please open an issue and let me know!
-          */}
           <Virtuoso
             ref={virtuosoRef}
             data={messages}
             firstItemIndex={firstItemIndex}
-            alignToBottom={true}
+            increaseViewportBy={500}
+            minOverscanItemCount={20}
             computeItemKey={(_index, message) => message.id}
             followOutput="auto"
-            initialTopMostItemIndex={messages.length - 1}
+            initialTopMostItemIndex={
+              messages.length > 0
+                ? { index: firstItemIndex + messages.length - 1, align: "end" }
+                : undefined
+            }
             startReached={handleLoadOlderMessages}
+            components={{
+              ScrollSeekPlaceholder: ({ height }) => (
+                <div
+                  className="p-2 box-border overflow-hidden"
+                  style={{ height }}
+                >
+                  <div
+                    className="bg-stroke animate-pulse rounded-md"
+                    style={{
+                      height,
+                    }}
+                  ></div>
+                </div>
+              ),
+            }}
+            scrollSeekConfiguration={{
+              enter: (velocity) => Math.abs(velocity) > 1000,
+              exit: (velocity) => Math.abs(velocity) < 150,
+            }}
             itemContent={(index, message) => {
               const arrayIndex = index - firstItemIndex;
               const prevMessage = messages[arrayIndex - 1];
@@ -247,8 +270,7 @@ export default function ChatInterface() {
                   isConsecutive={isMessageConsecutive(message, prevMessage)}
                 />
               );
-            }
-            }
+            }}
           />
           {messages && messages.length == 0 && (
             <div>This channel has no messages yet</div>

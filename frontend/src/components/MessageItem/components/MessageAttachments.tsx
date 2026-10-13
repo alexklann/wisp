@@ -31,7 +31,10 @@ export default function MessageAttachments({
             src={`${import.meta.env.VITE_BACKEND_URL}${attachment.url.split(".webp")[0]}_thumb.webp`}
           />
         ) : attachment.file_type.startsWith("audio/") ? (
-          <AudioAttachment attachment={attachment} />
+          <AudioAttachment
+            key={`audio_${attachment.id}`}
+            attachment={attachment}
+          />
         ) : attachment.file_type.startsWith("video/") ? (
           <video
             key={`video_${attachment.id}`}
