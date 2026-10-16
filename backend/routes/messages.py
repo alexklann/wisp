@@ -14,6 +14,47 @@ from routes.auth import get_current_user_id
 router = APIRouter()
 
 
+class PinMessageRequestBody(BaseModel):
+    status: bool
+
+
+@router.patch("/{message_id}/pin/")
+async def pin_message(
+    message_id: int,
+    request_body: PinMessageRequestBody,
+    session: AsyncSession = Depends(get_session),
+    user_id: str = Depends(get_current_user_id),
+):
+    statement = (
+        select(Message)
+        .join(Channel, col(Message.channel_id) == Channel.id)
+        .join(ServerMember, col(ServerMember.server_id) == Channel.server_id)
+        .where(Message.id == message_id)
+        .where(ServerMember.user_id == user_id)
+    )
+    result = await session.exec(statement)
+    message = result.first()
+
+    if message is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Message does not exist or user does not own message",
+        )
+
+    if message.is_pinned == request_body.status:
+        raise HTTPException(
+            status_code=status.HTTP_304_NOT_MODIFIED,
+            detail="Message is already pinned",
+        )
+
+    message.is_pinned = request_body.status
+    session.add(message)
+    await session.commit()
+    await session.refresh(message)
+
+    return message.id
+
+
 class EditMessageRequestBody(BaseModel):
     content: str
 
@@ -21,7 +62,7 @@ class EditMessageRequestBody(BaseModel):
 @router.patch("/{message_id}")
 async def edit_message(
     message_id: int,
-    requestBody: EditMessageRequestBody,
+    request_body: EditMessageRequestBody,
     session: AsyncSession = Depends(get_session),
     user_id: str = Depends(get_current_user_id),
     manager: ConnectionManager = Depends(get_connection_manager),
@@ -30,7 +71,6 @@ async def edit_message(
         select(Message)
         .join(Channel, col(Message.channel_id) == Channel.id)
         .join(ServerMember, col(ServerMember.server_id) == Channel.server_id)
-        .where(Message.sender_id == user_id)
         .where(Message.id == message_id)
         .where(ServerMember.user_id == user_id)
     )
@@ -44,7 +84,7 @@ async def edit_message(
         )
 
     channel_id = message.channel_id
-    message.content = requestBody.content
+    message.content = request_body.content
     message.edited_at = datetime.now()
     session.add(message)
     await session.commit()

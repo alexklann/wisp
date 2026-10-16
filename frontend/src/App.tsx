@@ -7,6 +7,7 @@ import ServerSidebar from "./components/ServerSidebar";
 import ModalPortal from "./components/ModalPortal";
 import { useEffect } from "react";
 import MemberSidebar from "./components/MemberSidebar";
+import { Toaster } from "react-hot-toast";
 
 /**
  * AI-Generated with DeepSeek-v4 Flash
@@ -43,7 +44,9 @@ export default function App() {
 
         const existing = await registration.pushManager.getSubscription();
         if (!existing) {
-          const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/push/key`);
+          const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_URL}/push/key`,
+          );
           if (!response.ok) {
             console.error("Error fetching public key from backend");
             return;
@@ -53,9 +56,7 @@ export default function App() {
 
           const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(
-              json.publicKey,
-            ),
+            applicationServerKey: urlBase64ToUint8Array(json.publicKey),
           });
 
           await fetch(`${import.meta.env.VITE_BACKEND_URL}/push/subscribe`, {
@@ -84,6 +85,7 @@ export default function App() {
   if (renderedPage == "index") {
     return (
       <>
+        <Toaster position="bottom-right" />
         <ModalPortal />
         <WebsocketProvider>
           <div className="w-screen h-screen flex flex-row bg-background p-3 gap-3">

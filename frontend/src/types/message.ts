@@ -10,6 +10,7 @@ export default interface Message {
   edited_at: number;
   reply_to_id: string | null;
   is_deleted: number;
+  is_pinned: boolean;
   created_at: number;
   attachments: Attachment[];
   replied_message?: RepliedMessagePreview;

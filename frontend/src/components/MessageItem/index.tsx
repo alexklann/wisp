@@ -8,20 +8,17 @@ import MessageContent from "./components/MessageContent";
 interface Props {
   message: Message;
   isConsecutive: boolean;
+  showActions?: boolean;
 }
 
-export default function MessageItem({ message, isConsecutive }: Props) {
+export default function MessageItem({
+  message,
+  isConsecutive,
+  showActions = true,
+}: Props) {
   return (
-    <div
-      className={`group relative flex flex-col rounded-lg border-2 border-transparent hover:border-brand-pink hover:bg-surface py-0.5`}
-    >
-      <MessageActions
-        messageId={message.id}
-        messagePreviewContent={message.content}
-        senderUsername={message.sender_username}
-        senderId={message.sender_id}
-        hasAttachments={message.attachments.length > 0}
-      />
+    <div className="group relative flex flex-col rounded-lg border-2 border-transparent hover:border-brand-pink hover:bg-surface py-0.5">
+      {showActions && <MessageActions message={message} />}
       <MessageHeader
         avatarUrl={message.sender_avatar_url}
         displayName={message.sender_display_name}
@@ -31,7 +28,10 @@ export default function MessageItem({ message, isConsecutive }: Props) {
       />
       <div className="flex flex-col ml-12">
         <MessageReply messagePreview={message.replied_message} />
-        <MessageContent messageId={message.id} messageContent={message.content} />
+        <MessageContent
+          messageId={message.id}
+          messageContent={message.content}
+        />
         <MessageAttachments messageAttachments={message.attachments} />
       </div>
     </div>

@@ -12,6 +12,31 @@
     --texttrim-both: trim-both; /* --texttrim or --trim or --ttrim or anything */
     --texttrim-start: trim-start;
     --texttrim-end: trim-end;
+
+    --animate-fade-zoom-in: fade-zoom-in 0.1s ease-in-out;
+    --animate-fade-zoom-out: fade-zoom-out 0.1s ease-in-out;
+
+    @keyframes fade-zoom-in {
+        0% {
+            opacity: 0;
+            transform: scale(50%);
+        },
+        100% {
+            opacity: 1;
+            transform: scale(100%);
+        }
+    }
+
+    @keyframes fade-zoom-out {
+        0% {
+            opacity: 1;
+            transform: scale(100%);
+        },
+        100% {
+            opacity: 0;
+            transform: scale(50%);
+        }
+    }
 }
 
 /* https://github.com/tailwindlabs/tailwindcss/discussions/17634 */

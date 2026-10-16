@@ -20,13 +20,17 @@ interface Member {
 export default function MemberSidebar() {
   const token = useAuthStore((state) => state.token);
 
-  const [fetchStatus, setFetchStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [fetchStatus, setFetchStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
   const [serverMembers, setServerMembers] = useState<Member[]>([]);
 
   const activeServerId = useChatStore((state) => state.activeServerId);
 
   const isMemberSidebarOpen = useUIStore((state) => state.isMemberSidebarOpen);
-  const setIsMemberSidebarOpen = useUIStore((state) => state.setIsMemberSidebarOpen);
+  const setIsMemberSidebarOpen = useUIStore(
+    (state) => state.setIsMemberSidebarOpen,
+  );
 
   const fetchMembers = async () => {
     setFetchStatus("loading");
@@ -61,8 +65,7 @@ export default function MemberSidebar() {
       }
     }, 15_000);
     return () => clearInterval(interval);
-  }, [activeServerId])
-
+  }, [activeServerId]);
 
   return (
     <aside
@@ -79,39 +82,53 @@ export default function MemberSidebar() {
         </div>
 
         <div className="p-2 w-full flex flex-col gap-4">
-          {fetchStatus === "error" && (
-            <span>Error fetching members</span>
-          )}
+          {fetchStatus === "error" && <span>Error fetching members</span>}
 
           {/* Online Users */}
           <div className="flex flex-col gap-2">
-            <span className="w-full text-xs text-white/75 font-medium">Online</span>
-            {fetchStatus !== "error"
-              && serverMembers.length > 0 && (
-                serverMembers.map((member) => (
+            <span className="w-full text-xs text-white/75 font-medium">
+              Online
+            </span>
+            {fetchStatus !== "error" &&
+              serverMembers.length > 0 &&
+              serverMembers.map(
+                (member) =>
                   member.online && (
-                    <div className="flex flex-row items-center gap-2" key={`member_${member.user_id}`}>
-                      <MessageAvatar className="w-6 h-6" avatarUrl={member.avatar_url} />
+                    <div
+                      className="flex flex-row items-center gap-2"
+                      key={`member_${member.user_id}`}
+                    >
+                      <MessageAvatar
+                        className="w-6 h-6"
+                        avatarUrl={member.avatar_url}
+                      />
                       <span>{member.display_name}</span>
                     </div>
-                  )
-                ))
+                  ),
               )}
           </div>
 
           {/* Offline Users */}
           <div className="flex flex-col gap-2">
-            <span className="w-full text-xs text-white/75 font-medium">Offline</span>
-            {fetchStatus !== "error"
-              && serverMembers.length > 0 && (
-                serverMembers.map((member) => (
+            <span className="w-full text-xs text-white/75 font-medium">
+              Offline
+            </span>
+            {fetchStatus !== "error" &&
+              serverMembers.length > 0 &&
+              serverMembers.map(
+                (member) =>
                   !member.online && (
-                    <div className="flex flex-row items-center gap-2" key={`member_${member.user_id}`}>
-                      <MessageAvatar className="w-6 h-6" avatarUrl={member.avatar_url} />
+                    <div
+                      className="flex flex-row items-center gap-2"
+                      key={`member_${member.user_id}`}
+                    >
+                      <MessageAvatar
+                        className="w-6 h-6"
+                        avatarUrl={member.avatar_url}
+                      />
                       <span>{member.display_name}</span>
                     </div>
-                  )
-                ))
+                  ),
               )}
           </div>
         </div>

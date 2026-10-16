@@ -10,9 +10,100 @@ import "../markdown.css";
 import MessageItem from "./MessageItem";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { useUIStore } from "../stores/useUIStore";
-import HamburgerIcon from "../icons/HamburgerIcon";
 import { useWebsocket } from "../hooks/useWebsocket";
 import { useAuthStore } from "../stores/useAuthStore";
+import downloadImage from "../lib/downloadImage";
+import isMessageConsecutive from "../lib/isMessageConsecutive";
+import SidebarIcon from "../icons/SidebarIcon";
+import MembersIcon from "../icons/MembersIcon";
+import PinIcon from "../icons/PinIcon";
+import SpinnerIcon from "../icons/SpinnerIcon";
+
+function ConnectionOverlay() {
+  const { socket, attemptCount } = useWebsocket();
+
+  if (socket === null) {
+    return (
+      <div className="flex justify-center items-center absolute h-screen w-screen inset-0 bg-black/50 z-50">
+        {attemptCount <= 10 ? (
+          <span className="text-center text-white font-bold text-4xl">
+            Connecting to backend...
+            <br />
+            Attempt: {attemptCount} / 10
+          </span>
+        ) : (
+          <span className="text-white font-bold text-4xl">
+            Failed to connect within 10 attempts
+          </span>
+        )}
+      </div>
+    );
+  }
+}
+
+function FullscreenImage() {
+  const selectedImageURL = useUIStore((state) => state.selectedImageURL);
+  const setSelectedImageURL = useUIStore((state) => state.setSelectedImageURL);
+
+  const selectedImageFilename = useUIStore(
+    (state) => state.selectedImageFilename,
+  );
+
+  // Allow for escape to close overlay when viewing fullscreen image
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && selectedImageURL !== null) {
+        setSelectedImageURL(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedImageURL, setSelectedImageURL]);
+
+  if (selectedImageURL !== null) {
+    return (
+      <div
+        onClick={() => setSelectedImageURL(null)}
+        className="flex justify-center items-center fixed inset-0 z-90 bg-black/70 p-12"
+      >
+        <div
+          onClick={(event) => event.stopPropagation()}
+          className="flex flex-row gap-2 absolute top-0 right-0 m-4"
+        >
+          <button
+            onClick={() => window.open(selectedImageURL, "_blank")?.focus()}
+            title="Open in external tab"
+            className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
+          >
+            <ExternalIcon className="text-text" />
+          </button>
+          <button
+            onClick={() =>
+              downloadImage(selectedImageURL, selectedImageFilename!)
+            }
+            disabled={!selectedImageFilename}
+            title="Download image"
+            className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
+          >
+            <DownloadIcon className="text-text" />
+          </button>
+          <button
+            onClick={() => setSelectedImageURL(null)}
+            className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
+          >
+            <CloseIcon className="text-text" />
+          </button>
+        </div>
+        <img
+          onClick={(event) => event.stopPropagation()}
+          className="max-w-full max-h-full object-contain select-none"
+          src={selectedImageURL}
+        />
+      </div>
+    );
+  }
+}
 
 export default function ChatInterface() {
   const messages = useChatStore((state) => state.messages);
@@ -28,8 +119,6 @@ export default function ChatInterface() {
 
   const activeChannel = channels.find((ch) => ch.id === activeChannelId);
 
-  const { socket, attemptCount } = useWebsocket();
-
   const setIsServerSidebarOpen = useUIStore(
     (state) => state.setIsServerSidebarOpen,
   );
@@ -37,39 +126,16 @@ export default function ChatInterface() {
     (state) => state.setIsMemberSidebarOpen,
   );
 
-  const selectedImageURL = useUIStore((state) => state.selectedImageURL);
-  const setSelectedImageURL = useUIStore((state) => state.setSelectedImageURL);
-
-  const selectedImageFilename = useUIStore(
-    (state) => state.selectedImageFilename,
-  );
+  const [pinnedMessagesLoadingState, setPinnedMessagesLoadingState] = useState<
+    "idle" | "loading" | "error"
+  >("loading");
+  const [showPinnedMessagesOverlay, setShowPinnedMessagesOverlay] =
+    useState<boolean>(false);
+  const [pinnedMessages, setPinnedMessages] = useState<Message[]>([]);
 
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
   const { typingUsernames } = useTyping();
-
-  const downloadImage = async () => {
-    try {
-      if (!selectedImageURL || !selectedImageFilename) return;
-      const response = await fetch(selectedImageURL);
-      if (!response.ok) throw new Error("Network response was not ok");
-
-      const blob = await response.blob();
-      const localUrl = URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = localUrl;
-      link.download = selectedImageFilename;
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      URL.revokeObjectURL(localUrl);
-    } catch (error) {
-      console.error("Failed to download image:", error);
-    }
-  };
 
   const handleLoadOlderMessages = async () => {
     if (
@@ -108,121 +174,112 @@ export default function ChatInterface() {
     }
   };
 
-  useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (selectedImageURL === null) return;
-      if (event.key !== "Escape") return;
+  const fetchPinnedMessages = async () => {
+    setPinnedMessagesLoadingState("loading");
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/channels/${activeChannelId}/messages/pinned/`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
-      setSelectedImageURL(null);
-    };
-
-    window.addEventListener("keypress", (event) => {
-      handleKeyPress(event);
-    });
-    return () => window.removeEventListener("keypress", handleKeyPress);
-  }, [selectedImageURL, setSelectedImageURL]);
+      if (response.ok) {
+        const pinned: Message[] = await response.json();
+        setPinnedMessages(pinned);
+        setPinnedMessagesLoadingState("idle");
+      }
+    } catch (err) {
+      setPinnedMessagesLoadingState("error");
+      console.error("Failed to load pinned messages: ", err);
+    }
+  };
 
   useEffect(() => {
     isLoadingMessages.current = false;
     setHasMoreMessages(true);
   }, [activeChannelId]);
 
-  function isMessageConsecutive(current: Message, prev?: Message): boolean {
-    if (!prev) return false;
-    const isTimeExceeded =
-      new Date(current.created_at).getTime() -
-        new Date(prev.created_at).getTime() >=
-      5 * 60 * 1000;
-    const isDifferentSender = current.sender_id !== prev.sender_id;
-    return !isTimeExceeded && !isDifferentSender;
-  }
-
-  // Allow for escape to close overlay when viewing fullscreen image
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && selectedImageURL !== null) {
-        setSelectedImageURL(null);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedImageURL, setSelectedImageURL]);
-
   return (
     <>
-      {socket === null && (
-        <div className="flex justify-center items-center absolute h-screen w-screen inset-0 bg-black/50 z-50">
-          {attemptCount <= 10 ? (
-            <span className="text-center text-white font-bold text-4xl">
-              Connecting to backend...
-              <br />
-              Attempt: {attemptCount} / 10
-            </span>
-          ) : (
-            <span className="text-white font-bold text-4xl">
-              Failed to connect within 10 attempts
-            </span>
-          )}
-        </div>
-      )}
-      {selectedImageURL !== null && (
-        <div
-          onClick={() => setSelectedImageURL(null)}
-          className="flex justify-center items-center fixed inset-0 z-90 bg-black/70 p-12"
-        >
-          <div
-            onClick={(event) => event.stopPropagation()}
-            className="flex flex-row gap-2 absolute top-0 right-0 m-4"
-          >
-            <button
-              onClick={() => window.open(selectedImageURL, "_blank")?.focus()}
-              title="Open in external tab"
-              className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
-            >
-              <ExternalIcon className="text-text" />
-            </button>
-            <button
-              onClick={() => downloadImage()}
-              title="Download image"
-              className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
-            >
-              <DownloadIcon className="text-text" />
-            </button>
-            <button
-              onClick={() => setSelectedImageURL(null)}
-              className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
-            >
-              <CloseIcon className="text-text" />
-            </button>
-          </div>
-          <img
-            onClick={(event) => event.stopPropagation()}
-            className="max-w-full max-h-full object-contain select-none"
-            src={selectedImageURL}
-          />
-        </div>
-      )}
+      <ConnectionOverlay />
+      <FullscreenImage />
+
       <main className="flex flex-col gap-1 bg-surface-base text-text h-full w-full border p-3 border-stroke rounded-xl">
-        <div className="md:hidden flex flex-row items-center p-2 gap-4 bg-surface w-full rounded-lg border-stroke border-2">
+        <div className="flex flex-row items-center p-2 gap-4 bg-surface w-full rounded-lg border-stroke border">
           <button
             onClick={() => setIsServerSidebarOpen(true)}
-            title="Open in external tab"
-            className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
+            title="Toggle sidebar"
+            className="min-w-10 md:hidden flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
           >
-            <HamburgerIcon className="text-text" />
+            <SidebarIcon className="text-text" />
           </button>
-          <span className="text-lg font-bold flex-1">
+          <span className="md:ml-2 text-lg font-bold flex-1">
             {activeChannel && activeChannel.name}
           </span>
-          <button
-            onClick={() => setIsMemberSidebarOpen(true)}
-            title="Open in external tab"
-            className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
-          >
-            <HamburgerIcon className="text-text" />
-          </button>
+          <div className="flex flex-row gap-2">
+            <div className="relative">
+              <button
+                onClick={async () => {
+                  setShowPinnedMessagesOverlay(!showPinnedMessagesOverlay);
+                  if (!showPinnedMessagesOverlay) await fetchPinnedMessages();
+                }}
+                title="Show pinned messages"
+                className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
+              >
+                <PinIcon className="text-text" />
+              </button>
+              {showPinnedMessagesOverlay && (
+                <>
+                  <div
+                    className="fixed inset-0 z-30"
+                    onClick={() => setShowPinnedMessagesOverlay(false)}
+                  />
+                  <div className="z-40 top-0 right-0 w-96 h-96 translate-y-12 shadow-md z-10 absolute flex flex-col bg-surface border border-stroke rounded-md p-4">
+                    <span className="font-bold mb-4">Pinned Messages</span>
+                    <div className="flex flex-col overflow-y-scroll h-full">
+                      {pinnedMessagesLoadingState === "error" && (
+                        <div className="flex flex-col items-center justify-center py-8 h-full">
+                          <span className="font-bold text-center w-[75%]">
+                            An error occured while loading the pinned messages
+                          </span>
+                        </div>
+                      )}
+
+                      {pinnedMessagesLoadingState === "loading" && (
+                        <div className="flex flex-col items-center justify-center py-8 h-full">
+                          <SpinnerIcon className="text-white animate-spin h-10 w-10" />
+                          <span className="font-bold text-lg">Loading</span>
+                        </div>
+                      )}
+
+                      {pinnedMessagesLoadingState === "idle" &&
+                        pinnedMessages.length > 0 &&
+                        pinnedMessages.map((message) => (
+                          <MessageItem
+                            key={`pinned_msg_${message.id}`}
+                            message={message}
+                            isConsecutive={false}
+                            showActions={false}
+                          />
+                        ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+            <button
+              onClick={() => setIsMemberSidebarOpen(true)}
+              title="Toggle members panel"
+              className="min-w-10 md:hidden flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
+            >
+              <MembersIcon className="text-text" />
+            </button>
+          </div>
         </div>
+
         <div className="flex flex-col h-full flex-1">
           <Virtuoso
             ref={virtuosoRef}
@@ -274,6 +331,7 @@ export default function ChatInterface() {
             <div>This channel has no messages yet</div>
           )}
         </div>
+
         <div className="min-h-4 px-2">
           {typingUsernames.length > 0 && (
             <span className="text-xs font-medium text-white/60 animate-pulse">
@@ -282,6 +340,7 @@ export default function ChatInterface() {
             </span>
           )}
         </div>
+
         <ChatInput />
       </main>
     </>

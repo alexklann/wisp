@@ -44,7 +44,7 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
     }
 
     if (message.attachments && message.attachments.length > 0) {
-      return "Sent an attachment"
+      return "Sent an attachment";
     }
 
     return "Sent a message";
@@ -143,7 +143,7 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
       ws.onclose = () => {
         setSocket(null);
 
-        const delay = Math.min(1000 * 2 ** attempts.current, 10000);
+        const delay = Math.min(1000 * attempts.current, 5000);
         attempts.current += 1;
         setAttemptCount(attempts.current);
 

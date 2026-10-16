@@ -100,6 +100,8 @@ class Message(SQLModel, table=True):
         default=None, sa_column_kwargs={"server_default": text("CURRENT_TIMESTAMP")}
     )
 
+    is_pinned: bool = Field(default=False)
+
     attachments: list[Attachment] = Relationship(back_populates="message")
     replied_message: Optional["Message"] = Relationship(
         sa_relationship_kwargs={"remote_side": "Message.id"}
@@ -135,6 +137,7 @@ class ChatMessageResponse(BaseModel):
     edited_at: Optional[datetime]
     reply_to_id: Optional[int]
     is_deleted: bool
+    is_pinned: bool
     created_at: datetime
     attachments: list[AttachmentResponse] = []
     replied_message: Optional[RepliedMessagePreview] = None
