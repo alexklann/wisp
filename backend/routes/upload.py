@@ -2,6 +2,7 @@ import asyncio
 import io
 import mimetypes
 import uuid
+import os
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
@@ -62,6 +63,28 @@ VIDEO_MIME_TYPES = [
 # TODO: Add video magic bytes
 
 router = APIRouter()
+
+import subprocess, asyncio
+
+
+async def _faststart_video(src: Path, dst: Path):
+    def _run():
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-y",
+                "-i",
+                str(src),
+                "-c",
+                "copy",
+                "-movflags",
+                "+faststart",
+                str(dst),
+            ],
+            check=True,
+        )
+
+    await asyncio.to_thread(_run)
 
 
 def _validate_magic_bytes(file_bytes: bytes, content_type: str) -> None:
@@ -266,6 +289,15 @@ async def upload(
             total_size += len(chunk)
             with open(file_path, "ab") as f:
                 f.write(chunk)
+
+        if content_type in ("video/mp4", "video/quicktime"):
+            tmp_path = file_path.with_name(f"{file_id}.faststart{original_ext}")
+            try:
+                await _faststart_video(file_path, tmp_path)
+                os.replace(tmp_path, file_path)
+            except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+                tmp_path.unlink(missing_ok=True)
+                print(f"faststart remux failed, keeping original upload: {exc}")
 
         file_size = file_path.stat().st_size
 
