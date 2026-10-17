@@ -10,15 +10,17 @@ from fastapi.staticfiles import StaticFiles
 from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette.responses import FileResponse
 
+from routes.websocket import ws
 from database import get_session
 from models import Attachment
-from routes import auth, channel, messages, push, server, upload, ws, user
+from routes import auth, channel, messages, push, server, upload, user
 
 import base64
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization
 
 from contextlib import asynccontextmanager
+
 
 def setup_vapid_keys():
     private_pem_filename = "vapid_private.pem"
@@ -35,7 +37,7 @@ def setup_vapid_keys():
     private_pem = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.TraditionalOpenSSL,
-        encryption_algorithm=serialization.NoEncryption()
+        encryption_algorithm=serialization.NoEncryption(),
     )
 
     with open(private_pem_filename, "wb") as f:
@@ -43,16 +45,18 @@ def setup_vapid_keys():
 
     public_pem = public_key.public_bytes(
         encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
     )
     with open(public_pem_filename, "wb") as f:
         f.write(public_pem)
 
     public_bytes = public_key.public_bytes(
         encoding=serialization.Encoding.X962,
-        format=serialization.PublicFormat.UncompressedPoint
+        format=serialization.PublicFormat.UncompressedPoint,
     )
-    vapid_public_key = base64.urlsafe_b64encode(public_bytes).decode('utf-8').rstrip('=')
+    vapid_public_key = (
+        base64.urlsafe_b64encode(public_bytes).decode("utf-8").rstrip("=")
+    )
 
     with open(env_filename, "a") as f:
         f.write("\n\n# Auto-generated VAPID Keys for Web Push\n")
@@ -60,12 +64,16 @@ def setup_vapid_keys():
         f.write('VAPID_CLAIM_SUB="mail@example.com"\n')
 
     print("Successfully generated vapid keys\n")
-    print("Edit VAPID_CLAIM_SUB in .env file and restart") # TODO: Move VAPID_CLAIM_SUB into docker variables
+    print(
+        "Edit VAPID_CLAIM_SUB in .env file and restart"
+    )  # TODO: Move VAPID_CLAIM_SUB into docker variables
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_vapid_keys()
     yield
+
 
 app = FastAPI(lifespan=lifespan)
 

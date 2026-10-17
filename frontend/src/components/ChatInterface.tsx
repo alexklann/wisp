@@ -318,12 +318,37 @@ export default function ChatInterface() {
               const arrayIndex = index - firstItemIndex;
               const prevMessage = messages[arrayIndex - 1];
 
+              // Check if the previous message is from a different day
+              // Also show the header if it's the first message of a channel
+              const newDay =
+                !prevMessage ||
+                new Date(message.created_at).toDateString() !==
+                  new Date(prevMessage.created_at).toDateString();
+
               return (
-                <MessageItem
-                  key={`message_${message.id}`}
-                  message={message}
-                  isConsecutive={isMessageConsecutive(message, prevMessage)}
-                />
+                <>
+                  {newDay && (
+                    <div className="flex items-center gap-4 px-4 py-2 text-xs font-bold text-white/50">
+                      <span className="h-px flex-1 bg-stroke" />
+                      {new Date(message.created_at).toLocaleDateString(
+                        undefined, // Might replace with locale later
+                        {
+                          weekday: "long",
+                          month: "long",
+                          day: "numeric",
+                        },
+                      )}
+                      <span className="h-px flex-1 bg-stroke" />
+                    </div>
+                  )}
+                  <MessageItem
+                    key={`message_${message.id}`}
+                    message={message}
+                    isConsecutive={
+                      !newDay && isMessageConsecutive(message, prevMessage)
+                    }
+                  />
+                </>
               );
             }}
           />
