@@ -325,6 +325,7 @@ export default function ChatInterface() {
                 new Date(message.created_at).toDateString() !==
                   new Date(prevMessage.created_at).toDateString();
 
+              // Should change this to show Year instead of weekday
               return (
                 <>
                   {newDay && (

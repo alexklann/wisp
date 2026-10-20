@@ -5,7 +5,10 @@
     "": {
       "name": "frontend",
       "dependencies": {
+        "@emoji-mart/data": "^1.2.1",
+        "@emoji-mart/react": "^1.1.1",
         "@tailwindcss/vite": "^4.3.0",
+        "emoji-mart": "^5.6.0",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
         "react-dropzone": "^15.0.0",
@@ -77,6 +80,10 @@
     "@emnapi/runtime": ["@emnapi/runtime@1.10.0", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-ewvYlk86xUoGI0zQRNq/mC+16R1QeDlKQy21Ki3oSYXNgLb45GV1P6A0M+/s6nyCuNDqe5VpaY84BzXGwVbwFA=="],
 
     "@emnapi/wasi-threads": ["@emnapi/wasi-threads@1.2.1", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-uTII7OYF+/Mes/MrcIOYp5yOtSMLBWSIoLPpcgwipoiKbli6k322tcoFsxoIIxPDqW01SQGAgko4EzZi2BNv2w=="],
+
+    "@emoji-mart/data": ["@emoji-mart/data@1.2.1", "", {}, "sha512-no2pQMWiBy6gpBEiqGeU77/bFejDqUTRY7KX+0+iur13op3bqUsXdnwoZs6Xb1zbv0gAj5VvS1PWoUUckSr5Dw=="],
+
+    "@emoji-mart/react": ["@emoji-mart/react@1.1.1", "", { "peerDependencies": { "emoji-mart": "^5.2", "react": "^16.8 || ^17 || ^18" } }, "sha512-NMlFNeWgv1//uPsvLxvGQoIerPuVdXwK/EUek8OOkJ6wVOWPUizRBJU0hDqWZCOROVpfBgCemaC3m6jDOXi03g=="],
 
     "@eslint-community/eslint-utils": ["@eslint-community/eslint-utils@4.9.1", "", { "dependencies": { "eslint-visitor-keys": "^3.4.3" }, "peerDependencies": { "eslint": "^6.0.0 || ^7.0.0 || >=8.0.0" } }, "sha512-phrYmNiYppR7znFEdqgfWHXR6NCkZEK7hwWDHZUjit/2/U0r6XvkDl0SYnoM51Hq7FhCGdLDT6zxCCOY1hexsQ=="],
 
@@ -311,6 +318,8 @@
     "direction": ["direction@1.0.4", "", { "bin": { "direction": "cli.js" } }, "sha512-GYqKi1aH7PJXxdhTeZBFrg8vUBeKXi+cNprXsC1kpJcbcVnV9wBsrOu1cQEdG0WeQwlfHiy3XvnKfIrJ2R0NzQ=="],
 
     "electron-to-chromium": ["electron-to-chromium@1.5.367", "", {}, "sha512-4Mk/mrynCNQ+atY40D3UpmhLWB6AHMbYMlIrPhHcMF6x0L7O0b052FCAsxw1LlaR++UFuNg3D/A6XCuGDa0guQ=="],
+
+    "emoji-mart": ["emoji-mart@5.6.0", "", {}, "sha512-eJp3QRe79pjwa+duv+n7+5YsNhRcMl812EcFVwrnRvYKoNPoQb5qxU8DG6Bgwji0akHdp6D4Ln6tYLG58MFSow=="],
 
     "enhanced-resolve": ["enhanced-resolve@5.23.0", "", { "dependencies": { "graceful-fs": "^4.2.4", "tapable": "^2.3.3" } }, "sha512-yJN/BOOLxcOW2aQgeif9mSnaUB8KtvmMMp56oA1kx1CRfBKbhZm2pJ+NBY+3eOboHxix8lfjWpHE0Ei5U8RbSA=="],
 

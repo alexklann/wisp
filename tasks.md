@@ -5,11 +5,6 @@
   - Allows for easy administration and deletion of old images / videos
 - Emojis
 - User cards
-- Pinned Messages
-  - Add small popup that shows all pinned messages
-    - Make refresh pins on every request in case anything changed
-  - Add unpin button (make the frontend button change if the message is already pinned)
-  - Change local state of message to be pinned
 - Reactions
 - Forums
 - Commands
@@ -44,5 +39,9 @@ User B: [ctx1] but good for him
 
 -- The [ctxn] is only a placeholder to indicate different context's.
 -- Visually, this will be displayed using different message background colors or small tag indicators.
+
+- New column in messages
+- Dropdown per message from context 0 - 3 or so
+- Assign colors to context
 
 # Needs re-thinking / fixing / refactoring:
