@@ -18,6 +18,7 @@ import SidebarIcon from "../icons/SidebarIcon";
 import MembersIcon from "../icons/MembersIcon";
 import PinIcon from "../icons/PinIcon";
 import SpinnerIcon from "../icons/SpinnerIcon";
+import { twMerge } from "tailwind-merge";
 
 function ConnectionOverlay() {
   const { socket, attemptCount } = useWebsocket();
@@ -117,6 +118,8 @@ export default function ChatInterface() {
   const [hasMoreMessages, setHasMoreMessages] = useState<boolean>(true);
   const isLoadingMessages = useRef(false);
 
+  const [isAtBottom, setIsAtBottom] = useState<boolean>(true);
+
   const activeChannel = channels.find((ch) => ch.id === activeChannelId);
 
   const setIsServerSidebarOpen = useUIStore(
@@ -136,6 +139,13 @@ export default function ChatInterface() {
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
   const { typingUsernames } = useTyping();
+
+  const scrollToBottom = () =>
+    virtuosoRef.current?.scrollToIndex({
+      index: "LAST",
+      align: "end",
+      behavior: "smooth",
+    });
 
   const handleLoadOlderMessages = async () => {
     if (
@@ -207,7 +217,7 @@ export default function ChatInterface() {
       <ConnectionOverlay />
       <FullscreenImage />
 
-      <main className="flex flex-col gap-1 bg-surface-base text-text h-full w-full border p-3 border-stroke rounded-xl">
+      <main className="relative flex flex-col gap-1 bg-surface-base text-text h-full w-full border p-3 border-stroke rounded-xl">
         <div className="flex flex-row items-center p-2 gap-4 bg-surface w-full rounded-lg border-stroke border">
           <button
             onClick={() => setIsServerSidebarOpen(true)}
@@ -295,6 +305,7 @@ export default function ChatInterface() {
                 : undefined
             }
             startReached={handleLoadOlderMessages}
+            atBottomStateChange={(s) => setIsAtBottom(s)}
             components={{
               ScrollSeekPlaceholder: ({ height }) => (
                 <div
@@ -366,6 +377,19 @@ export default function ChatInterface() {
             </span>
           )}
         </div>
+
+        <button
+          onClick={scrollToBottom}
+          inert={isAtBottom}
+          className={twMerge(
+            "transition-all ease-in-out duration-200 absolute bottom-0 left-[50%] -translate-x-1/2 mb-20 cursor-pointer bg-surface-base hover:bg-surface border border-stroke px-32 py-1 rounded-md z-10",
+            isAtBottom
+              ? "opacity-0 pointer-events-none translate-y-2"
+              : "opacity-100 pointer-events-auto translate-y-0",
+          )}
+        >
+          <span>Back to bottom</span>
+        </button>
 
         <ChatInput />
       </main>

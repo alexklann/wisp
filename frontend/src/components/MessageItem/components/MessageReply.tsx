@@ -10,18 +10,18 @@ export default function MessageReply({
   return (
     <div
       title={`${messagePreview.sender_username}: ${messagePreview.content}`}
-      className="flex flex-row gap-1 items-center py-1 text-white/50"
+      className="flex flex-row gap-1 items-center py-1 text-white/70"
     >
-      <span className="text-xs">Reply to:</span>
-      <span className="text-xs font-bold">
+      <span className="text-sm">Reply to:</span>
+      <span className="text-sm font-bold">
         {messagePreview.sender_username}:
       </span>
-      <span className="w-[75%] truncate text-xs">
-        {messagePreview.content && messagePreview.content.trim().length > 0 ? (
-          messagePreview.content
-        ) : messagePreview.has_attachment ? (
-          "[Attachment]"
-        ) : "Message not found"}
+      <span className="w-[75%] truncate text-sm">
+        {messagePreview.content && messagePreview.content.trim().length > 0
+          ? messagePreview.content
+          : messagePreview.has_attachment
+            ? "[Attachment]"
+            : "Message not found"}
       </span>
     </div>
   );

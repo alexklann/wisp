@@ -108,6 +108,39 @@ export default function ServerSidebar() {
     }
   };
 
+  useEffect(() => {
+    if (!token || !activeServerId) {
+      setChannels([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    const fetchChannels = async () => {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/servers/${activeServerId}/channels/`,
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (cancelled) return;
+
+      if (response.ok) {
+        setChannels(await response.json());
+        setChannelFetchStatus("success");
+      } else {
+        setChannelFetchStatus("error");
+      }
+    };
+
+    fetchChannels();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeServerId, token, setChannels]);
+
   return (
     <aside
       className={`z-20 fixed m-3 inset-0 md:m-0 md:translate-x-0 left-0 md:relative flex flex-col gap-2 transform transition-transform duration-300 ease-in-out bg-surface-base text-text min-w-64 border p-3 border-stroke rounded-xl ${isServerSidebarOpen ? "translate-x-0" : "translate-x-[calc(-100%-12px)]"}`}
@@ -134,7 +167,7 @@ export default function ServerSidebar() {
           {serverFetchStatus === "error" && <span>Error fetching servers</span>}
           {servers && servers.length > 0 && (
             <select
-              defaultValue={""}
+              defaultValue={activeServerId ? `server_${activeServerId}` : ""}
               style={{
                 WebkitAppearance: "none",
                 MozAppearance: "none",
@@ -142,9 +175,7 @@ export default function ServerSidebar() {
                 textOverflow: "",
               }}
               onChange={(e) => {
-                fetchChannels(e.currentTarget.value);
                 setActiveChannel(null);
-                setMessages([]);
                 setActiveServer(e.currentTarget.value);
               }}
               className="text-sm w-full border border-stroke hover:border-brand-pink cursor-pointer rounded-lg p-2 focus:outline-0"
@@ -208,7 +239,7 @@ export default function ServerSidebar() {
       </div>
       <div className="flex flex-row items-end mt-auto">
         <span className="w-full text-sm text-text/20 font-bold">
-          Wisp 5 a1.3.0
+          Wisp 5 a1.3.1
         </span>
         <div className="flex flex-row gap-2">
           <BaseActionButton

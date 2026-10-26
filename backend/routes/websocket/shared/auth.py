@@ -33,7 +33,7 @@ async def validate_jwt_token(token: str, websocket: WebSocket) -> str | None:
     try:
         token_result = verify_jwt(token)
         if token_result is None:
-            await websocket.send_text(json.dumps({"error": "Invalid or missing token"}))
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             raise ValueError()
         return token_result["user_id"]
     except ValueError:

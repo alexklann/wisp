@@ -4,6 +4,7 @@ import MessageHeader from "./components/MessageHeader";
 import MessageReply from "./components/MessageReply";
 import MessageAttachments from "./components/MessageAttachments";
 import MessageContent from "./components/MessageContent";
+import { twMerge } from "tailwind-merge";
 
 interface Props {
   message: Message;
@@ -17,7 +18,12 @@ export default function MessageItem({
   showActions = true,
 }: Props) {
   return (
-    <div className="group relative flex flex-col rounded-lg border-2 border-transparent hover:border-brand-pink hover:bg-surface py-0.5">
+    <div
+      className={twMerge(
+        "group relative flex flex-col rounded-lg border-2 border-transparent hover:border-brand-pink hover:bg-surface",
+        isConsecutive ? "py-0" : "py-0.5",
+      )}
+    >
       {showActions && <MessageActions message={message} />}
       <MessageHeader
         avatarUrl={message.sender_avatar_url}

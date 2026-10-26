@@ -3,7 +3,6 @@
 - File Management (admin panel or per-server [guilded like])
   - Allow for a specific frontend page / module that shows all uploaded files / images / videos to a server
   - Allows for easy administration and deletion of old images / videos
-- Emojis
 - User cards
 - Reactions
 - Forums
@@ -45,3 +44,6 @@ User B: [ctx1] but good for him
 - Assign colors to context
 
 # Needs re-thinking / fixing / refactoring:
+
+- Emojis
+  - The emoji picker is not themed and doesn't really work on mobile
