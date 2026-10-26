@@ -69,26 +69,6 @@ export default function ServerSidebar() {
     }
   }, [serverFetchStatus, token, setServerFetchStatus, setServers, clear]);
 
-  const fetchChannels = async (serverId: string) => {
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/servers/${serverId}/channels/`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    if (response.ok) {
-      const responseBody = await response.json();
-      setChannels(responseBody);
-      setChannelFetchStatus("success");
-    } else {
-      setChannelFetchStatus("error");
-    }
-  };
-
   const fetchMessages = async (channelId: string) => {
     const response = await fetch(
       `${import.meta.env.VITE_BACKEND_URL}/channels/${channelId}/messages/?offset=0&limit=150`,
