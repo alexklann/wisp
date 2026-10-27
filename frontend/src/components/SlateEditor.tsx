@@ -28,6 +28,10 @@ export default function SlateEditor({
   const replyingMessageId = useUIStore((state) => state.replyingMessageId);
   const user = useAuthStore((state) => state.user);
 
+  const isTouchPrimary =
+    typeof window !== "undefined" &&
+    window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+
   const setEditingMessageId = useUIStore((state) => state.setEditingMessageId);
 
   const { notifyTyping } = useTyping();
@@ -38,7 +42,7 @@ export default function SlateEditor({
       const endPoint = Editor.end(editor, []);
       Transforms.select(editor, endPoint);
     }
-  }, [replyingMessageId, editor])
+  }, [replyingMessageId, editor]);
 
   const onPaste = useCallback(
     (event: React.ClipboardEvent<HTMLDivElement>) => {
@@ -59,9 +63,27 @@ export default function SlateEditor({
   );
 
   const handleKeyDownEvent = async (event: KeyboardEvent) => {
+    // Never handle CJK IME input
+    const native = "nativeEvent" in event ? event.nativeEvent : event;
+    if (native.isComposing) return;
+
+    if (event.key === "Enter") {
+      if (event.altKey || event.ctrlKey || event.metaKey) return;
+
+      if (event.shiftKey || isTouchPrimary) {
+        event.preventDefault();
+        editor.insertText("\n");
+        return;
+      }
+
+      event.preventDefault();
+      await sendMessage();
+      return;
+    }
+
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      sendMessage();
+      await sendMessage();
     } else if (event.key === "Enter" && event.shiftKey) {
       event.preventDefault();
       editor.insertText("\n");
@@ -91,7 +113,7 @@ export default function SlateEditor({
   };
 
   return (
-    <div className="flex flex-row items-center gap-2 pr-4 w-full max-h-48 overflow-y-auto">
+    <div className="flex flex-row items-center gap-2 w-full max-h-48 overflow-y-auto">
       <div className="flex-1 min-w-0">
         <Slate
           editor={editor}
@@ -113,11 +135,12 @@ export default function SlateEditor({
           <Editable
             onPaste={onPaste}
             onKeyDown={handleKeyDownEvent}
-            className="p-2 outline-none w-full wrap-break-word"
+            className="outline-none w-full wrap-break-word"
             placeholder={
               isUploading ? "Uploading attachments..." : "Enter a message..."
             }
             readOnly={isUploading}
+            enterKeyHint="enter"
           />
         </Slate>
       </div>

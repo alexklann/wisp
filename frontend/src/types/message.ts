@@ -11,6 +11,7 @@ export default interface Message {
   reply_to_id: string | null;
   is_deleted: number;
   is_pinned: boolean;
+  color: string | null;
   created_at: number;
   attachments: Attachment[];
   replied_message?: RepliedMessagePreview;

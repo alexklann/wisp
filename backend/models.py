@@ -17,8 +17,8 @@ class User(SQLModel, table=True):
     username: str = Field(unique=True)
     display_name: str
     password_hash: str
-    bio: Optional[str] = None
-    avatar_url: Optional[str] = None
+    bio: Optional[str] = Field(default=None)
+    avatar_url: Optional[str] = Field(default=None)
     created_at: Optional[datetime] = Field(
         default=None, sa_column_kwargs={"server_default": text("CURRENT_TIMESTAMP")}
     )
@@ -49,7 +49,7 @@ class Server(SQLModel, table=True):
     id: str = Field(primary_key=True)
     name: str
     owner_id: str = Field(foreign_key="users.id")
-    icon_url: Optional[str] = None
+    icon_url: Optional[str] = Field(default=None)
     created_at: Optional[datetime] = Field(
         default=None, sa_column_kwargs={"server_default": text("CURRENT_TIMESTAMP")}
     )
@@ -91,14 +91,17 @@ class Message(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     channel_id: str = Field(foreign_key="channels.id", index=True)
     sender_id: Optional[str] = Field(default=None, foreign_key="users.id")
-    content: Optional[str] = None
+    content: Optional[str] = Field(default=None)
     message_type: str = Field(default="text")
-    edited_at: Optional[datetime] = None
+    edited_at: Optional[datetime] = Field(default=None)
     reply_to_id: Optional[int] = Field(default=None, foreign_key="messages.id")
     is_deleted: int = Field(default=0)
     created_at: Optional[datetime] = Field(
         default=None, sa_column_kwargs={"server_default": text("CURRENT_TIMESTAMP")}
     )
+
+    # Used for different background colors / highlighting
+    color: Optional[str] = Field(default=None)
 
     is_pinned: bool = Field(default=False)
 
@@ -122,7 +125,7 @@ class RepliedMessagePreview(BaseModel):
     id: int
     content: Optional[str]
     sender_username: str
-    has_attachment: bool = False
+    has_attachment: bool = Field(default=False)
 
 
 class ChatMessageResponse(BaseModel):
@@ -138,9 +141,10 @@ class ChatMessageResponse(BaseModel):
     reply_to_id: Optional[int]
     is_deleted: bool
     is_pinned: bool
+    color: Optional[str]
     created_at: datetime
-    attachments: list[AttachmentResponse] = []
-    replied_message: Optional[RepliedMessagePreview] = None
+    attachments: list[AttachmentResponse] = Field(default=[])
+    replied_message: Optional[RepliedMessagePreview] = Field(default=None)
 
 
 class Attachment(SQLModel, table=True):

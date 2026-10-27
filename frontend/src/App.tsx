@@ -88,7 +88,7 @@ export default function App() {
         <Toaster position="bottom-right" />
         <ModalPortal />
         <WebsocketProvider>
-          <div className="w-screen h-screen flex flex-row bg-background p-3 gap-3">
+          <div className="w-screen h-screen flex flex-row overflow-hidden bg-background md:p-3 gap-3">
             <ServerSidebar />
             <ChatInterface />
             <MemberSidebar />

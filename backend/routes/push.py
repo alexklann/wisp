@@ -24,6 +24,7 @@ load_dotenv()
 
 router = APIRouter()
 
+
 @lru_cache()
 def get_webpush_client() -> WebPush:
     return WebPush(
@@ -81,15 +82,17 @@ async def post_push_unsubscribe(
 ):
     pass
 
-@router.get('/key')
+
+@router.get("/key")
 async def get_public_vapid_key():
     return {"publicKey": os.getenv("VAPID_PUBLIC_KEY")}
+
 
 @router.post("/test")
 async def send_test_push(
     session: AsyncSession = Depends(get_session),
     user_id: str = Depends(get_current_user_id),
-    wp: WebPush = Depends(get_webpush_client)
+    wp: WebPush = Depends(get_webpush_client),
 ):
     result = await session.execute(
         select(PushSubscription).where(PushSubscription.user_id == user_id)
@@ -128,10 +131,16 @@ async def send_test_push(
     return {"status": "sent", "count": len(subscriptions)}
 
 
-async def send_push_notification(server_id: str, title: str, body: str, session: AsyncSession, sender_id: str | None = None) -> bool:
+async def send_push_notification(
+    server_id: str,
+    title: str,
+    body: str,
+    session: AsyncSession,
+    sender_id: str | None = None,
+) -> bool:
     wp = get_webpush_client()
     manager = get_connection_manager()
-    
+
     result = await session.execute(
         select(ServerMember).where(ServerMember.server_id == server_id)
     )
@@ -141,7 +150,8 @@ async def send_push_notification(server_id: str, title: str, body: str, session:
         return False
 
     offline_member_ids = [
-        uid for uid in member_ids
+        uid
+        for uid in member_ids
         if uid != sender_id and not manager.is_user_online(uid)
     ]
 
@@ -149,7 +159,9 @@ async def send_push_notification(server_id: str, title: str, body: str, session:
         return True
 
     result = await session.execute(
-        select(PushSubscription).where(col(PushSubscription.user_id).in_(offline_member_ids))
+        select(PushSubscription).where(
+            col(PushSubscription.user_id).in_(offline_member_ids)
+        )
     )
     subscriptions = result.scalars().all()
 
@@ -169,10 +181,8 @@ async def send_push_notification(server_id: str, title: str, body: str, session:
 
         try:
             message = wp.get(
-                message=json.dumps(
-                    {"title": title, "body": body}
-                ),
-                subscription=subscription
+                message=json.dumps({"title": title, "body": body}),
+                subscription=subscription,
             )
 
             async with httpx.AsyncClient() as client:
@@ -181,7 +191,6 @@ async def send_push_notification(server_id: str, title: str, body: str, session:
                     content=message.encrypted,
                     headers=message.headers,  # type: ignore
                 )
-                print(f"FCM Push response status: {resp.status_code}, body: {resp.text}")
         except Exception as e:
             print(f"Push failed for {sub.endpoint}: {e}")
             return False

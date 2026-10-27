@@ -30,14 +30,14 @@ export default function UserEditModal() {
     setFetchStatus("loading");
 
     const formData = new FormData(e.currentTarget);
-    const username = formData.get("username")
-    const display_name = formData.get("display_name")
-    const bio = formData.get("bio")
+    const username = formData.get("username");
+    const display_name = formData.get("display_name");
+    const bio = formData.get("bio");
     const avatar = formData.get("avatar");
 
-    let avatar_url = null;
+    let avatar_url: string | null = null;
 
-    if (avatar) {
+    if (avatar instanceof File && avatar.size > 0) {
       setAvatarStatus("loading");
 
       const fileFormData = new FormData();
@@ -50,7 +50,7 @@ export default function UserEditModal() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-          body: fileFormData
+          body: fileFormData,
         },
       );
 
@@ -66,6 +66,24 @@ export default function UserEditModal() {
       }
     }
 
+    let payload: {
+      username: FormDataEntryValue | null;
+      display_name: FormDataEntryValue | null;
+      bio: FormDataEntryValue | null;
+      avatar_url?: string;
+    } = {
+      username,
+      display_name,
+      bio,
+    };
+
+    if (avatar_url) {
+      payload = {
+        ...payload,
+        avatar_url,
+      };
+    }
+
     const response = await fetch(
       `${import.meta.env.VITE_BACKEND_URL}/users/me/`,
       {
@@ -74,12 +92,7 @@ export default function UserEditModal() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          username,
-          display_name,
-          bio,
-          avatar_url,
-        })
+        body: JSON.stringify(payload),
       },
     );
 
@@ -102,19 +115,23 @@ export default function UserEditModal() {
       </ModalHeader>
       {user && (
         <div className="flex flex-col gap-2">
-          <form onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
+          <form
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = () => {
-              setAvatarUrl(reader.result as string);
-            };
-            reader.onerror = () => {
-              console.error("Failed to read file:", reader.error);
-            };
-            reader.readAsDataURL(file);
-          }} onSubmit={onFormSubmit} className="w-full flex flex-col gap-4">
+              const reader = new FileReader();
+              reader.onload = () => {
+                setAvatarUrl(reader.result as string);
+              };
+              reader.onerror = () => {
+                console.error("Failed to read file:", reader.error);
+              };
+              reader.readAsDataURL(file);
+            }}
+            onSubmit={onFormSubmit}
+            className="w-full flex flex-col gap-4"
+          >
             <div className="flex flex-row gap-8">
               <button
                 onClick={(e) => {
@@ -126,12 +143,23 @@ export default function UserEditModal() {
                 disabled={avatarStatus === "loading"}
                 type="button"
                 title="Upload image"
-                className="relative group rounded-full overflow-hidden border-2 border-text/20 cursor-pointer w-fit h-fit">
-                <input name="avatar" ref={filePicker} type="file" className="hidden" />
-                <div className={twMerge(
-                  "absolute justify-center items-center inset-0",
-                  avatarStatus === "idle" ? "hidden group-hover:flex bg-black/50" : "flex bg-black/50"
-                )}>
+                className="relative group rounded-full overflow-hidden border-2 border-text/20 cursor-pointer w-fit h-fit"
+              >
+                <input
+                  name="avatar"
+                  ref={filePicker}
+                  type="file"
+                  className="hidden"
+                  required={false}
+                />
+                <div
+                  className={twMerge(
+                    "absolute justify-center items-center inset-0",
+                    avatarStatus === "idle"
+                      ? "hidden group-hover:flex bg-black/50"
+                      : "flex bg-black/50",
+                  )}
+                >
                   {avatarStatus === "loading" ? (
                     <SpinnerIcon className="h-12 w-12 animate-spin" />
                   ) : avatarStatus === "idle" ? (
@@ -139,12 +167,13 @@ export default function UserEditModal() {
                   ) : avatarStatus === "success" ? (
                     <SpinnerIcon className="h-12 w-12 animate-spin" />
                   ) : (
-                    <span className="text-2xl font-bold text-text">
-                      ?
-                    </span>
+                    <span className="text-2xl font-bold text-text">?</span>
                   )}
                 </div>
-                <img src={avatarUrl ?? user.avatar_url!} className="w-32! aspect-square" />
+                <img
+                  src={avatarUrl ?? user.avatar_url!}
+                  className="w-32! aspect-square"
+                />
               </button>
               <div className="flex flex-col gap-2 flex-1">
                 <label className="flex flex-col flex-1">
@@ -154,7 +183,8 @@ export default function UserEditModal() {
                     type="text"
                     name="username"
                     placeholder="Username"
-                    defaultValue={user.username} />
+                    defaultValue={user.username}
+                  />
                 </label>
                 <label className="flex flex-col flex-1">
                   <span className="text-text text-sm">Display Name</span>
@@ -163,10 +193,10 @@ export default function UserEditModal() {
                     type="text"
                     name="display_name"
                     placeholder="Display Name"
-                    defaultValue={user.display_name} />
+                    defaultValue={user.display_name}
+                  />
                 </label>
               </div>
-
             </div>
             <label className="flex flex-col flex-1">
               <span className="text-text text-sm">Bio</span>
@@ -175,7 +205,8 @@ export default function UserEditModal() {
                 rows={4}
                 name="bio"
                 placeholder="Bio (not used yet)"
-                defaultValue={user.bio ?? ""} />
+                defaultValue={user.bio ?? ""}
+              />
             </label>
             <div className="flex flex-row items-center">
               {fetchStatus === "loading" && (
@@ -184,10 +215,18 @@ export default function UserEditModal() {
                   <span>Applying...</span>
                 </div>
               )}
-              <button type="submit" disabled={fetchStatus === "loading"} className={twMerge(
-                "ml-auto p-2 rounded-lg cursor-pointer w-32",
-                fetchStatus === "loading" ? "bg-gray-600 cursor-not-allowed" : "bg-brand-pink hover:bg-brand-pink/70"
-              )}>Apply</button>
+              <button
+                type="submit"
+                disabled={fetchStatus === "loading"}
+                className={twMerge(
+                  "ml-auto p-2 rounded-lg cursor-pointer w-32",
+                  fetchStatus === "loading"
+                    ? "bg-gray-600 cursor-not-allowed"
+                    : "bg-brand-pink hover:bg-brand-pink/70",
+                )}
+              >
+                Apply
+              </button>
             </div>
           </form>
         </div>

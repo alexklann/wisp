@@ -19,6 +19,7 @@ class EditSelfRequestBody(BaseModel):
 
 
 class EditSelfResponseBody(BaseModel):
+    id: str
     username: str | None = None
     display_name: str | None = None
     bio: str | None = None
@@ -49,4 +50,4 @@ async def edit_self(
     await session.commit()
     await session.refresh(user)
 
-    return EditSelfResponseBody.model_validate(user)
+    return EditSelfResponseBody.model_validate(user.model_dump())

@@ -8,6 +8,7 @@ import { useUIStore } from "../stores/useUIStore";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 import { Transforms } from "slate";
+import PaperplaneIcon from "../icons/PaperplaneIcon";
 
 const EMOJI_LIST = [
   "😀",
@@ -40,6 +41,19 @@ export default function ChatInput() {
 
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
   const [emojiButtonIndex, setEmojiButtonIndex] = useState<number>(0);
+
+  const setReplyingMessageId = useUIStore(
+    (state) => state.setReplyingMessageId,
+  );
+  const setReplyingMessageContent = useUIStore(
+    (state) => state.setReplyingMessageContent,
+  );
+  const setReplyingMessageUsername = useUIStore(
+    (state) => state.setReplyingMessageUsername,
+  );
+  const setReplyingMessageHasAttachment = useUIStore(
+    (state) => state.setReplyingMessageHasAttachment,
+  );
 
   const replyingMessageId = useUIStore((state) => state.replyingMessageId);
   const replyingMessageContent = useUIStore(
@@ -92,6 +106,13 @@ export default function ChatInput() {
     setShowEmojiPicker(false);
   };
 
+  const removeReply = () => {
+    setReplyingMessageContent(null);
+    setReplyingMessageHasAttachment(false);
+    setReplyingMessageId(null);
+    setReplyingMessageUsername(null);
+  };
+
   return (
     <div className="relative flex flex-col gap-2">
       {showEmojiPicker && (
@@ -120,7 +141,11 @@ export default function ChatInput() {
           uploadProgress={uploadProgress}
         />
         {replyingMessageId && (
-          <div className="flex flex-row gap-2 items-center text-sm px-2 py-1 border-b border-stroke">
+          <div
+            onClick={() => removeReply()}
+            title="Stop replying"
+            className="flex flex-row gap-2 items-center text-sm px-2 py-1 border-b border-stroke hover:line-through cursor-pointer"
+          >
             <span>Replying to:</span>
             <div className="flex flex-row gap-1 px-2 py-1 border border-stroke rounded-lg">
               <span className="font-bold">{replyingMessageUsername}:</span>
@@ -135,9 +160,9 @@ export default function ChatInput() {
           </div>
         )}
 
-        <div className="flex flex-row gap-2 p-2">
+        <div className="flex flex-row p-2 gap-2">
           <button
-            className="flex items-center justify-center h-10 aspect-square hover:bg-white/5 border border-stroke rounded-lg cursor-pointer"
+            className="flex items-center justify-center h-8 aspect-square hover:bg-white/5 rounded-lg cursor-pointer"
             onClick={() => open()}
           >
             <PaperclipIcon className="text-white w-[75%] aspect-square" />
@@ -150,15 +175,21 @@ export default function ChatInput() {
           />
           <button
             ref={emojiButtonRef}
-            className="group flex items-center justify-center h-10 aspect-square hover:bg-white/5 border border-stroke rounded-lg cursor-pointer"
+            className="group flex items-center justify-center h-8 aspect-square hover:bg-white/5 rounded-lg cursor-pointer"
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             onMouseLeave={() =>
               setEmojiButtonIndex((emojiButtonIndex + 1) % EMOJI_LIST.length)
             }
           >
-            <span className="grayscale transition-transform duration-100 ease-in-out group-hover:scale-125">
+            <span className="grayscale transition-transform duration-100 ease-in-out">
               {EMOJI_LIST[emojiButtonIndex]}
             </span>
+          </button>
+          <button
+            className="flex items-center justify-center h-8 aspect-square hover:bg-white/5 rounded-lg cursor-pointer"
+            onClick={async () => await sendMessage()}
+          >
+            <PaperplaneIcon className="text-white w-[75%] aspect-square" />
           </button>
         </div>
       </div>

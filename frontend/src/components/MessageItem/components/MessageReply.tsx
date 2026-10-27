@@ -12,7 +12,7 @@ export default function MessageReply({
       title={`${messagePreview.sender_username}: ${messagePreview.content}`}
       className="flex flex-row gap-1 items-center py-1 text-white/70"
     >
-      <span className="text-sm">Reply to:</span>
+      <span className="text-sm shrink-0">Reply to:</span>
       <span className="text-sm font-bold">
         {messagePreview.sender_username}:
       </span>

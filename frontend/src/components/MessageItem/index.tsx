@@ -20,9 +20,12 @@ export default function MessageItem({
   return (
     <div
       className={twMerge(
-        "group relative flex flex-col rounded-lg border-2 border-transparent hover:border-brand-pink hover:bg-surface",
+        "group relative flex flex-col border-2 border-transparent hover:rounded-lg hover:border-brand-pink hover:bg-surface",
         isConsecutive ? "py-0" : "py-0.5",
       )}
+      style={{
+        backgroundColor: `color-mix(in srgb, ${message.color} 10%, transparent)`,
+      }}
     >
       {showActions && <MessageActions message={message} />}
       <MessageHeader
