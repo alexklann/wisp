@@ -66,3 +66,18 @@
         scrollbar-width: none;
     }
 }
+
+
+dialog.action-sheet {
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform 150ms ease-out, opacity 250ms ease-out;
+  transition-behavior: allow-discrete;
+}
+
+@starting-style {
+  dialog.action-sheet {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}

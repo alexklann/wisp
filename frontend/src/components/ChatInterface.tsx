@@ -19,6 +19,7 @@ import MembersIcon from "../icons/MembersIcon";
 import PinIcon from "../icons/PinIcon";
 import SpinnerIcon from "../icons/SpinnerIcon";
 import { twMerge } from "tailwind-merge";
+import MessageActionSheet from "./MessageItem/components/MessageActionSheet";
 
 function ConnectionOverlay() {
   const { socket, attemptCount } = useWebsocket();
@@ -216,6 +217,7 @@ export default function ChatInterface() {
     <>
       <ConnectionOverlay />
       <FullscreenImage />
+      <MessageActionSheet />
 
       <main className="min-w-0 relative flex flex-col gap-1 bg-surface-base text-text h-full w-full border p-3 border-stroke md:rounded-xl">
         <div className="flex flex-row items-center p-2 gap-4 bg-surface w-full rounded-lg border-stroke border">
@@ -237,7 +239,7 @@ export default function ChatInterface() {
                   if (!showPinnedMessagesOverlay) await fetchPinnedMessages();
                 }}
                 title="Show pinned messages"
-                className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
+                className="min-w-10 hidden md:flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
               >
                 <PinIcon className="text-text" />
               </button>

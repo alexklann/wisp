@@ -31,7 +31,7 @@ def get_webpush_client() -> WebPush:
         public_key=Path("./vapid_public.pem"),
         private_key=Path("./vapid_private.pem"),
         subscriber=os.getenv("VAPID_CLAIM_SUB", "admin@example.com"),
-        ttl=86400,
+        ttl=600,
     )
 
 
@@ -80,6 +80,7 @@ async def post_push_unsubscribe(
     session: AsyncSession = Depends(get_session),
     user_id: str = Depends(get_current_user_id),
 ):
+    # TODO: Implement this some day
     pass
 
 
