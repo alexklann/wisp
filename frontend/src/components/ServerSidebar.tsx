@@ -126,7 +126,7 @@ export default function ServerSidebar() {
       className={`shrink-0 z-20 fixed m-3 inset-0 md:m-0 md:translate-x-0 left-0 md:relative flex flex-col gap-2 transform transition-transform duration-300 ease-in-out bg-surface-base text-text min-w-64 border p-3 border-stroke rounded-xl ${isServerSidebarOpen ? "translate-x-0" : "translate-x-[calc(-100%-12px)]"}`}
     >
       <div className="w-full">
-        <div className="md:hidden bg-surface rounded-lg border-stroke border-2 p-2">
+        <div className="md:hidden bg-surface rounded-lg border-stroke border p-2">
           <button
             onClick={() => setIsServerSidebarOpen(false)}
             className="min-w-10 flex items-center justify-center aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg cursor-pointer"
@@ -219,7 +219,7 @@ export default function ServerSidebar() {
       </div>
       <div className="flex flex-row items-end mt-auto">
         <span className="w-full text-sm text-text/20 font-bold">
-          Wisp 5 a1.3.3
+          Wisp 5 a1.4.0
         </span>
         <div className="flex flex-row gap-2">
           <BaseActionButton

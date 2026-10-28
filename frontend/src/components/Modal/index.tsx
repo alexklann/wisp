@@ -15,7 +15,7 @@ export default function Modal({ children, className }: Props) {
     <div
       onClick={(e) => e.stopPropagation()}
       className={twMerge(
-        "relative flex flex-col gap-2 bg-surface-base border border-stroke rounded-lg p-4 text-white min-w-xl min-h-48",
+        "relative flex flex-col gap-2 bg-surface-base border border-stroke rounded-lg p-4 text-white w-full md:w-fit m-2 md:m-0 md:min-w-xl min-h-48",
         className,
       )}
     >

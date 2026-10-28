@@ -8,9 +8,12 @@ import { useMessageActions } from "../hooks/useMessageActions";
 import { useUIStore } from "../../../stores/useUIStore";
 import { twMerge } from "tailwind-merge";
 import type Message from "../../../types/message";
+import { useAuthStore } from "../../../stores/useAuthStore";
 
 export default function MessageActionSheet() {
   const { pinMessage, deleteMessage, setReplyingMessage } = useMessageActions();
+
+  const user = useAuthStore((state) => state.user);
 
   const displayMessage = useUIStore(
     (state) => state.messageActionSheetSelectedMessage,
@@ -48,7 +51,7 @@ export default function MessageActionSheet() {
           if (!show) setDisplayMessage(null);
         }}
         className={twMerge(
-          "flex flex-col gap-2 absolute bottom-0 action-sheet w-full max-w-none rounded-t-2xl bg-surface p-2 transition duration-300 ease-in-out min-h-32",
+          "flex flex-col gap-2 absolute bottom-0 action-sheet w-full max-w-none rounded-t-md bg-surface p-2 transition duration-300 ease-in-out",
           show ? "translate-y-0" : "translate-y-full",
         )}
       >
@@ -74,30 +77,34 @@ export default function MessageActionSheet() {
                 Reply to Message
               </span>
             </BaseActionButton>
-            <BaseActionButton
-              className="justify-start px-4 gap-4 flex w-full"
-              title="Edit Message"
-              onClick={() => setEditingMessageId(renderedMessage.id)}
-            >
-              <EditIcon className="text-text aspect-square" />
-              <span className="text-text text-sm select-none">
-                Edit Message
-              </span>
-            </BaseActionButton>
-            <BaseActionButton
-              className="justify-start px-4 gap-4 flex w-full"
-              title="Delete Message"
-              onClick={() =>
-                deleteMessage({
-                  messageId: renderedMessage.id,
-                })
-              }
-            >
-              <TrashIcon className="text-text aspect-square" />
-              <span className="text-text text-sm select-none">
-                Delete Message
-              </span>
-            </BaseActionButton>
+            {user && renderedMessage.sender_id === user.id && (
+              <>
+                <BaseActionButton
+                  className="justify-start px-4 gap-4 flex w-full"
+                  title="Edit Message"
+                  onClick={() => setEditingMessageId(renderedMessage.id)}
+                >
+                  <EditIcon className="text-text aspect-square" />
+                  <span className="text-text text-sm select-none">
+                    Edit Message
+                  </span>
+                </BaseActionButton>
+                <BaseActionButton
+                  className="justify-start px-4 gap-4 flex w-full bg-red-700"
+                  title="Delete Message"
+                  onClick={() =>
+                    deleteMessage({
+                      messageId: renderedMessage.id,
+                    })
+                  }
+                >
+                  <TrashIcon className="text-text aspect-square" />
+                  <span className="text-text text-sm select-none">
+                    Delete Message
+                  </span>
+                </BaseActionButton>
+              </>
+            )}
           </>
         )}
       </div>

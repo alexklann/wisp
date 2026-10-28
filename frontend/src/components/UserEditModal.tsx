@@ -7,6 +7,7 @@ import { useRef, useState, type SyntheticEvent } from "react";
 import SpinnerIcon from "../icons/SpinnerIcon";
 import { twMerge } from "tailwind-merge";
 import PaperclipIcon from "../icons/PaperclipIcon";
+import { showGenericToast } from "../lib/customToast";
 
 export default function UserEditModal() {
   const token = useAuthStore((state) => state.token);
@@ -125,6 +126,10 @@ export default function UserEditModal() {
                 setAvatarUrl(reader.result as string);
               };
               reader.onerror = () => {
+                showGenericToast({
+                  title: "Avatar Upload",
+                  description: "Failed to read file",
+                });
                 console.error("Failed to read file:", reader.error);
               };
               reader.readAsDataURL(file);
@@ -132,7 +137,7 @@ export default function UserEditModal() {
             onSubmit={onFormSubmit}
             className="w-full flex flex-col gap-4"
           >
-            <div className="flex flex-row gap-8">
+            <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
               <button
                 onClick={(e) => {
                   e.preventDefault();
@@ -175,7 +180,7 @@ export default function UserEditModal() {
                   className="w-32! aspect-square"
                 />
               </button>
-              <div className="flex flex-col gap-2 flex-1">
+              <div className="flex flex-col gap-2 flex-1 w-full md:w-fit">
                 <label className="flex flex-col flex-1">
                   <span className="text-text text-sm">Username</span>
                   <input
