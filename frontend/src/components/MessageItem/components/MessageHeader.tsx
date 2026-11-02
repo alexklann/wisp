@@ -6,7 +6,6 @@ interface Props {
   createdAt: number;
   editedAt: number;
   isConsecutive: boolean;
-  context: number;
 }
 
 // Return timestamp in HH:MM format
@@ -47,7 +46,6 @@ export default function MessageHeader({
   createdAt,
   editedAt,
   isConsecutive,
-  context,
 }: Props) {
   if (isConsecutive) return;
 

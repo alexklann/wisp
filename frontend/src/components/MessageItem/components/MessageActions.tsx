@@ -8,7 +8,6 @@ import BaseActionButton from "../../BaseActionButton";
 import type Message from "../../../types/message";
 import { useState } from "react";
 import { useMessageActions } from "../hooks/useMessageActions";
-import ColorPaletteIcon from "../../../icons/ColorPaletteIcon";
 
 interface Props {
   message: Message;

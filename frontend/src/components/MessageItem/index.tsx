@@ -47,7 +47,6 @@ export default function MessageItem({
         createdAt={message.created_at}
         editedAt={message.edited_at}
         isConsecutive={isConsecutive}
-        context={message.context ?? 0}
       />
       <div className="flex flex-col ml-12">
         <MessageReply messagePreview={message.replied_message} />
