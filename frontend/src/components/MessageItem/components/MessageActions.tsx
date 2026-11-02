@@ -67,10 +67,13 @@ export default function MessageActions({ message }: Props) {
           <button
             title="Decrease context level"
             onClick={() =>
+            {
+              console.log(message.context, typeof message.context);
               setMessageContext({
                 messageId: message.id,
                 contextNumber: Math.min(Math.max((message.context ?? 0) - 1, 0), 3),
               })
+            }
             }
             className="text-text font-bold text-trim-both px-2 rounded-md cursor-pointer"
           >
@@ -84,7 +87,7 @@ export default function MessageActions({ message }: Props) {
             onClick={() =>
               setMessageContext({
                 messageId: message.id,
-                contextNumber: Math.min(Math.max((message.context ?? 0) - 1, 0), 3),
+                contextNumber: Math.min(Math.max((message.context ?? 0) + 1, 0), 3),
               })
             }
             className="text-text font-bold text-trim-both px-2 rounded-md cursor-pointer"
