@@ -26,6 +26,7 @@ interface ChatState {
 
   deleteMessage: (messageId: number) => void;
   editMessage: (messageId: number, content: string) => void;
+  updateMessageContext: (messageId: number, context: number) => void;
 
   firstItemIndex: number;
   prependMessages: (olderMessages: Message[]) => void;
@@ -71,6 +72,14 @@ export const useChatStore = create<ChatState>()(
               ? { ...msg, content: content, edited_at: Date.now() }
               : msg,
           ),
+        })),
+      updateMessageContext: (messageId, context) =>
+        set((state) => ({
+          messages: state.messages.map((msg) =>
+            msg.id === messageId
+              ? { ...msg, context: context }
+              : msg,
+            ),
         })),
 
       firstItemIndex: START_INDEX,

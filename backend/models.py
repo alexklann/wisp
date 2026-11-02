@@ -101,7 +101,7 @@ class Message(SQLModel, table=True):
     )
 
     # Used for different background colors / highlighting
-    color: Optional[str] = Field(default=None)
+    context: Optional[int] = Field(default=None)
 
     is_pinned: bool = Field(default=False)
 
@@ -141,7 +141,7 @@ class ChatMessageResponse(BaseModel):
     reply_to_id: Optional[int]
     is_deleted: bool
     is_pinned: bool
-    color: Optional[str]
+    context: Optional[int]
     created_at: datetime
     attachments: list[AttachmentResponse] = Field(default=[])
     replied_message: Optional[RepliedMessagePreview] = Field(default=None)

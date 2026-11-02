@@ -55,6 +55,47 @@ async def pin_message(
     return message.id
 
 
+class SetContextMessageRequestBody(BaseModel):
+    context: int
+
+
+@router.patch("/{message_id}/context/")
+async def set_context_message(
+    message_id: int,
+    request_body: SetContextMessageRequestBody,
+    session: AsyncSession = Depends(get_session),
+    user_id: str = Depends(get_current_user_id),
+):
+    statement = (
+        select(Message)
+        .join(Channel, col(Message.channel_id) == Channel.id)
+        .join(ServerMember, col(ServerMember.server_id) == Channel.server_id)
+        .where(Message.id == message_id)
+        .where(ServerMember.user_id == user_id)
+    )
+    result = await session.exec(statement)
+    message = result.first()
+
+    if message is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Message does not exist or user does not own message",
+        )
+
+    if message.context == request_body.context:
+        raise HTTPException(
+            status_code=status.HTTP_304_NOT_MODIFIED,
+            detail="Message context hasn't changed",
+        )
+
+    message.context = request_body.context
+    session.add(message)
+    await session.commit()
+    await session.refresh(message)
+
+    return message.id
+
+
 class EditMessageRequestBody(BaseModel):
     content: str
 

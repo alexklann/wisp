@@ -29,7 +29,7 @@ def encode_jwt(user_id: str, user_name: str) -> str:
         {
             "user_id": user_id,
             "user_name": user_name,
-            "exp": datetime.now(timezone.utc) + timedelta(days=7),
+            "exp": datetime.now(timezone.utc) + timedelta(days=93),
         },
         settings.token_secret,
         algorithm="HS256",

@@ -21,14 +21,14 @@ export default function MessageItem({
 }: Props) {
   const longPress = useLongPress(() => {
     navigator.vibrate?.(10);
-    setMessageActionSheetSelectedMessage(message);
+    setMessageActionSheetSelectedMessageId(message.id);
   });
 
-  const messageActionSheetSelectedMessage = useUIStore(
-    (state) => state.messageActionSheetSelectedMessage,
+  const messageActionSheetSelectedMessageId = useUIStore(
+    (state) => state.messageActionSheetSelectedMessageId,
   );
-  const setMessageActionSheetSelectedMessage = useUIStore(
-    (state) => state.setMessageActionSheetSelectedMessage,
+  const setMessageActionSheetSelectedMessageId = useUIStore(
+    (state) => state.setMessageActionSheetSelectedMessageId,
   );
 
   return (
@@ -37,11 +37,8 @@ export default function MessageItem({
       className={twMerge(
         "group relative flex flex-col border-2 border-transparent hover:rounded-lg hover:border-brand-pink hover:bg-surface",
         isConsecutive ? "py-0" : "py-0.5",
-        messageActionSheetSelectedMessage === message ? "bg-surface" : "",
+        messageActionSheetSelectedMessageId === message.id ? "bg-surface" : "",
       )}
-      style={{
-        backgroundColor: `color-mix(in srgb, ${message.color} 10%, transparent)`,
-      }}
     >
       {showActions && <MessageActions message={message} />}
       <MessageHeader
@@ -50,14 +47,19 @@ export default function MessageItem({
         createdAt={message.created_at}
         editedAt={message.edited_at}
         isConsecutive={isConsecutive}
+        context={message.context ?? 0}
       />
       <div className="flex flex-col ml-12">
         <MessageReply messagePreview={message.replied_message} />
         <MessageContent
           messageId={message.id}
           messageContent={message.content}
+          messageContext={message.context}
         />
-        <MessageAttachments messageAttachments={message.attachments} />
+        <MessageAttachments messageAttachments={message.attachments} messageContext={message.context ?? 0}/>
+        {message.context !== 0 && message.context !== null  && (
+          <span className="absolute bottom-0 right-0 px-2 py-1 text-text/20 text-xs">{message.context ?? 0}</span>
+        )}
       </div>
     </div>
   );

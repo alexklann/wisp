@@ -1,13 +1,19 @@
+import { twMerge } from "tailwind-merge";
 import FileIcon from "../../../icons/FileIcon";
 import { useUIStore } from "../../../stores/useUIStore";
 import type { Attachment } from "../../../types/message";
 import AudioAttachment from "../../AudioAttachment";
+import { useMessageActions } from "../hooks/useMessageActions";
 
 export default function MessageAttachments({
   messageAttachments,
+  messageContext,
 }: {
   messageAttachments: Attachment[];
+  messageContext: number | null;
 }) {
+  const { MESSAGE_CONTEXT_COLORS } = useMessageActions();
+
   const setSelectedImageURL = useUIStore((state) => state.setSelectedImageURL);
   const setSelectedImageFilename = useUIStore(
     (state) => state.setSelectedImageFilename,
@@ -15,7 +21,16 @@ export default function MessageAttachments({
 
   if (messageAttachments.length === 0) return <></>;
   return (
-    <div className="flex flex-col gap-2">
+    <div
+      className={
+        twMerge(
+          "flex flex-col gap-2",
+          messageContext !== 0 && messageContext !== null ? `border-l-6 pl-2` : "",
+        )
+      }
+      style={{
+        borderColor: `color-mix(in srgb, ${MESSAGE_CONTEXT_COLORS[messageContext ?? 0]} 50%, transparent)`,
+      }}>
       {messageAttachments.map((attachment: Attachment) =>
         attachment.file_type.startsWith("image/") ? (
           <img
@@ -27,7 +42,7 @@ export default function MessageAttachments({
               );
               setSelectedImageFilename(attachment.id);
             }}
-            className="max-w-[90%] md:max-w-72 cursor-pointer rounded-lg"
+            className="max-w-[40%] md:max-w-32 cursor-pointer rounded-lg"
             src={`${import.meta.env.VITE_BACKEND_URL}${attachment.url.split(".webp")[0]}_thumb.webp`}
           />
         ) : attachment.file_type.startsWith("audio/") ? (

@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import type { ModalType } from "../types/ModalType";
-import type Message from "../types/message";
 
 interface UIState {
   renderedPage: string | null;
@@ -39,8 +38,8 @@ interface UIState {
   isMemberSidebarOpen: boolean;
   setIsMemberSidebarOpen: (state: boolean) => void;
 
-  messageActionSheetSelectedMessage: Message | null;
-  setMessageActionSheetSelectedMessage: (state: Message | null) => void;
+  messageActionSheetSelectedMessageId: number | null;
+  setMessageActionSheetSelectedMessageId: (state: number | null) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -89,7 +88,7 @@ export const useUIStore = create<UIState>((set) => ({
   isMemberSidebarOpen: false,
   setIsMemberSidebarOpen: (state) => set({ isMemberSidebarOpen: state }),
 
-  messageActionSheetSelectedMessage: null,
-  setMessageActionSheetSelectedMessage: (state) =>
-    set({ messageActionSheetSelectedMessage: state }),
+  messageActionSheetSelectedMessageId: null,
+  setMessageActionSheetSelectedMessageId: (state) =>
+    set({ messageActionSheetSelectedMessageId: state }),
 }));

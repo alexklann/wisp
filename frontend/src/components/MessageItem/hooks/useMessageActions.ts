@@ -4,6 +4,13 @@ import { useChatStore } from "../../../stores/useChatStore";
 import { useUIStore } from "../../../stores/useUIStore";
 import type Message from "../../../types/message";
 
+const MESSAGE_CONTEXT_COLORS: Record<number, string | undefined> = {
+  0: "transparent",
+  1: "#F2AF29",
+  2: "#F52977",
+  3: "#187EF0",
+};
+
 export function useMessageActions() {
   const token = useAuthStore((state) => state.token);
 
@@ -19,6 +26,8 @@ export function useMessageActions() {
   const setReplyingMessageHasAttachment = useUIStore(
     (state) => state.setReplyingMessageHasAttachment,
   );
+
+  const updateMessageContext = useChatStore((state) => state.updateMessageContext);
 
   const deleteMessageStorage = useChatStore((state) => state.deleteMessage);
 
@@ -75,6 +84,37 @@ export function useMessageActions() {
     }
   }
 
+  async function setMessageContext({
+    messageId,
+    contextNumber,
+  }: {
+    messageId: number;
+    contextNumber: number;
+  }) {
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/messages/${messageId}/context/`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          context: contextNumber,
+        }),
+      },
+    );
+
+    if (response.ok) {
+      updateMessageContext(messageId, contextNumber);
+    } else {
+      showGenericToast({
+        title: "Message Context",
+        description: `Failed to set message context`,
+      });
+    }
+  }
+
   function setReplyingMessage(message: Message) {
     setReplyingMessageId(message.id);
     setReplyingMessageContent(message.content);
@@ -86,5 +126,7 @@ export function useMessageActions() {
     pinMessage,
     deleteMessage,
     setReplyingMessage,
+    setMessageContext,
+    MESSAGE_CONTEXT_COLORS,
   };
 }

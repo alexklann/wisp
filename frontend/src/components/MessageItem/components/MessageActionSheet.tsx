@@ -7,38 +7,42 @@ import { useState } from "react";
 import { useMessageActions } from "../hooks/useMessageActions";
 import { useUIStore } from "../../../stores/useUIStore";
 import { twMerge } from "tailwind-merge";
-import type Message from "../../../types/message";
 import { useAuthStore } from "../../../stores/useAuthStore";
+import ColorPaletteIcon from "../../../icons/ColorPaletteIcon";
+import { useChatStore } from "../../../stores/useChatStore";
 
 export default function MessageActionSheet() {
-  const { pinMessage, deleteMessage, setReplyingMessage } = useMessageActions();
+  const { pinMessage, deleteMessage, setReplyingMessage, setMessageContext } =
+    useMessageActions();
 
   const user = useAuthStore((state) => state.user);
 
-  const displayMessage = useUIStore(
-    (state) => state.messageActionSheetSelectedMessage,
+  const displayMessageId = useUIStore(
+    (state) => state.messageActionSheetSelectedMessageId,
   );
 
-  const setDisplayMessage = useUIStore(
-    (state) => state.setMessageActionSheetSelectedMessage,
+  const setDisplayMessageId = useUIStore(
+    (state) => state.setMessageActionSheetSelectedMessageId,
   );
 
   const setEditingMessageId = useUIStore((state) => state.setEditingMessageId);
 
   const show =
-    useUIStore((state) => state.messageActionSheetSelectedMessage) !== null;
+    useUIStore((state) => state.messageActionSheetSelectedMessageId) !== null;
 
-  const [renderedMessage, setRenderedMessage] = useState<Message | null>(null);
+  const [renderedMessageId, setRenderedMessageId] = useState<number | null>(null);
 
-  if (displayMessage !== null && displayMessage !== renderedMessage) {
-    setRenderedMessage(displayMessage);
+  if (displayMessageId !== null && displayMessageId !== renderedMessageId) {
+    setRenderedMessageId(displayMessageId);
   }
+
+  const renderedMessage = useChatStore((state) => state.messages.find((m) => m.id === renderedMessageId) ?? null);
 
   return (
     <div
       inert={!show}
       className="fixed inset-0 z-90"
-      onClick={() => setDisplayMessage(null)}
+      onClick={() => setDisplayMessageId(null)}
     >
       <div
         className={twMerge(
@@ -48,7 +52,7 @@ export default function MessageActionSheet() {
       />
       <div
         onTransitionEnd={() => {
-          if (!show) setDisplayMessage(null);
+          if (!show) setDisplayMessageId(null);
         }}
         className={twMerge(
           "flex flex-col gap-2 absolute bottom-0 action-sheet w-full max-w-none rounded-t-md bg-surface p-2 transition duration-300 ease-in-out",
@@ -79,6 +83,46 @@ export default function MessageActionSheet() {
             </BaseActionButton>
             {user && renderedMessage.sender_id === user.id && (
               <>
+                <div
+                  className="flex items-center justify-center h-10 aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg justify-start pl-4 pr-2 gap-4 flex w-full"
+                  title="Change Context"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ColorPaletteIcon className="text-text aspect-square" />
+                  <span className="text-text text-sm select-none flex-1">
+                    Change Context
+                  </span>
+                  <div className="flex flex-row gap-1">
+                    <button
+                      onClick={() =>
+                        setMessageContext({
+                          messageId: renderedMessage.id,
+                          contextNumber: (renderedMessage.context ?? 0) - 1, // TODO: Clamp this
+                        })
+                      }
+                      className="text-text font-bold text-trim-both px-2 rounded-md"
+                    >
+                      -
+                    </button>
+                    <input
+                      className="text-text w-8 text-center border-stroke border outline-none rounded-md px-2"
+                      value={renderedMessage.context ?? 0}
+                      min={0}
+                      max={3}
+                    />
+                    <button
+                      onClick={() =>
+                        setMessageContext({
+                          messageId: renderedMessage.id,
+                          contextNumber: (renderedMessage.context ?? 0) + 1, // TODO: Clamp this
+                        })
+                      }
+                      className="text-text font-bold text-trim-both px-2 rounded-md"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
                 <BaseActionButton
                   className="justify-start px-4 gap-4 flex w-full"
                   title="Edit Message"
