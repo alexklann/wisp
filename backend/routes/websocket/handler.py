@@ -7,6 +7,7 @@ from core.client_event import (
     JoinChannel,
     Ping,
     SendMessage,
+    MessageContextChanged,
     TypingStart,
 )
 from core.connection_manager import ConnectionManager, get_connection_manager
@@ -20,6 +21,7 @@ event_adapter = TypeAdapter(ClientEvent)
 PROTECTED_HANDLERS = {
     SendMessage: send_message.process,
     JoinChannel: join_channel.process,
+    MessageContextChanged: message_context_changed.process,
     TypingStart: typing_start.process,
 }
 

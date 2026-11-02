@@ -24,6 +24,7 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
   const addMessage = useChatStore((state) => state.addMessage);
   const deleteMessage = useChatStore((state) => state.deleteMessage);
   const editMessage = useChatStore((state) => state.editMessage);
+  const updateMessageContext = useChatStore((state) => state.updateMessageContext);
 
   const attempts = useRef(0);
   const [attemptCount, setAttemptCount] = useState<number>(0);
@@ -135,6 +136,11 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
           }
           case "message_edited": {
             editMessage(data.message_id, data.message_content);
+            break;
+          }
+          case "message_context_changed": {
+            console.log(data);
+            updateMessageContext(data.message_id, data.message_context);
             break;
           }
         }

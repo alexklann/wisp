@@ -19,6 +19,10 @@ class JoinChannel(BaseModel):
     type: Literal["joinChannel"]
     channel_id: str
 
+class MessageContextChanged(BaseModel):
+    type: Literal["messageContextChanged"]
+    message_id: str
+    message_context: int
 
 class TypingStart(BaseModel):
     type: Literal["typingStart"]

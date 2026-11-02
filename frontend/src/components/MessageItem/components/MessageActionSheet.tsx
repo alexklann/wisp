@@ -97,7 +97,7 @@ export default function MessageActionSheet() {
                       onClick={() =>
                         setMessageContext({
                           messageId: renderedMessage.id,
-                          contextNumber: (renderedMessage.context ?? 0) - 1, // TODO: Clamp this
+                          contextNumber: Math.min(Math.max((renderedMessage.context ?? 0) - 1, 0), 3),
                         })
                       }
                       className="text-text font-bold text-trim-both px-2 rounded-md"
@@ -114,7 +114,7 @@ export default function MessageActionSheet() {
                       onClick={() =>
                         setMessageContext({
                           messageId: renderedMessage.id,
-                          contextNumber: (renderedMessage.context ?? 0) + 1, // TODO: Clamp this
+                          contextNumber: Math.min(Math.max((renderedMessage.context ?? 0) - 1, 0), 3),
                         })
                       }
                       className="text-text font-bold text-trim-both px-2 rounded-md"

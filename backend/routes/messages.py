@@ -65,6 +65,7 @@ async def set_context_message(
     request_body: SetContextMessageRequestBody,
     session: AsyncSession = Depends(get_session),
     user_id: str = Depends(get_current_user_id),
+    manager: ConnectionManager = Depends(get_connection_manager),
 ):
     statement = (
         select(Message)
@@ -92,6 +93,16 @@ async def set_context_message(
     session.add(message)
     await session.commit()
     await session.refresh(message)
+
+    
+    await manager.broadcast(
+        message.channel_id,
+        {
+            "type": "message_context_changed",
+            "message_id": message.id,
+            "message_context": message.context
+        },
+    )
 
     return message.id
 
