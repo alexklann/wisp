@@ -219,7 +219,7 @@ export default function ServerSidebar() {
       </div>
       <div className="flex flex-row items-end mt-auto">
         <span className="w-full text-sm text-text/20 font-bold">
-          Wisp 5 a1.5.1
+          Wisp 5 a1.5.2
         </span>
         <div className="flex flex-row gap-2">
           <BaseActionButton

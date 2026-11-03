@@ -13,6 +13,7 @@ class SendMessage(BaseModel):
     content: str
     attachment_ids: list[str] = Field(default_factory=list)
     reply_to_id: Optional[int] = None
+    context: int
 
 
 class JoinChannel(BaseModel):

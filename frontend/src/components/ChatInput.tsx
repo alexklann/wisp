@@ -37,6 +37,8 @@ export default function ChatInput() {
     sendMessage,
     isUploading,
     uploadProgress,
+    currentMessageContext,
+    setCurrentMessageContext,
   } = useChatInput();
 
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
@@ -160,7 +162,7 @@ export default function ChatInput() {
           </div>
         )}
 
-        <div className="flex flex-row p-2 gap-2">
+        <div className="flex flex-row items-center p-2 gap-2">
           <button
             className="flex items-center justify-center h-8 aspect-square hover:bg-white/5 rounded-lg cursor-pointer"
             onClick={() => open()}
@@ -172,7 +174,11 @@ export default function ChatInput() {
             setAttachments={setAttachments}
             isUploading={isUploading}
             sendMessage={sendMessage}
+            setCurrentMessageContext={setCurrentMessageContext}
           />
+          {currentMessageContext > 0 && (
+            <span className="hidden md:block h-fit text-xs text-text/50">{currentMessageContext}</span>
+          )}
           <button
             ref={emojiButtonRef}
             className="group flex items-center justify-center h-8 aspect-square hover:bg-white/5 rounded-lg cursor-pointer"

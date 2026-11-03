@@ -26,6 +26,7 @@ async def _create_new_message(event: SendMessage, ctx: ConnectionContext) -> Mes
         content=event.content,
         message_type="text",
         reply_to_id=event.reply_to_id,
+        context=event.context
     )
     ctx.session.add(new_message)
     await ctx.session.commit()

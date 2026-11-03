@@ -21,6 +21,8 @@ export function useChatInput() {
   );
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
+  const [currentMessageContext, setCurrentMessageContext] = useState<number>(0);
+
   const replyingMessageId = useUIStore((state) => state.replyingMessageId);
   const clearReplyingMessage = useUIStore(
     (state) => state.clearReplyingMessage,
@@ -54,6 +56,7 @@ export function useChatInput() {
           content: text,
           attachment_ids: attachmentIds,
           reply_to_id: replyingMessageId,
+          context: currentMessageContext,
         }),
       );
 
@@ -94,5 +97,7 @@ export function useChatInput() {
     sendMessage,
     isUploading,
     uploadProgress,
+    currentMessageContext,
+    setCurrentMessageContext,
   };
 }

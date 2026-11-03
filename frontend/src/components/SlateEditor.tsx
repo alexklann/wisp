@@ -17,6 +17,7 @@ interface Props {
   setAttachments: Dispatch<SetStateAction<File[]>>;
   isUploading: boolean;
   sendMessage: () => Promise<void>;
+  setCurrentMessageContext: Dispatch<SetStateAction<number>>;
 }
 
 export default function SlateEditor({
@@ -24,6 +25,7 @@ export default function SlateEditor({
   setAttachments,
   isUploading,
   sendMessage,
+  setCurrentMessageContext
 }: Props) {
   const replyingMessageId = useUIStore((state) => state.replyingMessageId);
   const user = useAuthStore((state) => state.user);
@@ -66,6 +68,19 @@ export default function SlateEditor({
     // Never handle CJK IME input
     const native = "nativeEvent" in event ? event.nativeEvent : event;
     if (native.isComposing) return;
+
+    // We have to use event.code because otherwise
+    // the option+numbers get interpreted as special chars on macos.
+    const CONTEXT_BY_CODE = new Map([
+      ["Digit1", 0], ["Digit2", 1], ["Digit3", 2], ["Digit4", 3], ["Digit5", 4],
+    ]);
+
+    // If we're pressing 1/2/3/4/5
+    const context = CONTEXT_BY_CODE.get(event.code);
+    if (event.altKey && context !== undefined) {
+      event.preventDefault();
+      setCurrentMessageContext(context);
+    }
 
     if (event.key === "Enter") {
       if (event.altKey || event.ctrlKey || event.metaKey) return;
