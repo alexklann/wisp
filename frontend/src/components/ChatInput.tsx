@@ -9,6 +9,7 @@ import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 import { Transforms } from "slate";
 import PaperplaneIcon from "../icons/PaperplaneIcon";
+import MESSAGE_CONTEXT_COLORS from "../lib/contextColors";
 
 const EMOJI_LIST = [
   "😀",
@@ -129,6 +130,11 @@ export default function ChatInput() {
       <div
         {...getRootProps()}
         className="relative bg-surface text-white border border-stroke rounded-lg"
+        style={
+          currentMessageContext > 0
+            ? { borderColor: MESSAGE_CONTEXT_COLORS[currentMessageContext] }
+            : undefined
+        }
       >
         <input {...getInputProps()} />
         {isDragActive && (
@@ -174,6 +180,7 @@ export default function ChatInput() {
             setAttachments={setAttachments}
             isUploading={isUploading}
             sendMessage={sendMessage}
+            currentMessageContext={currentMessageContext}
             setCurrentMessageContext={setCurrentMessageContext}
           />
           {currentMessageContext > 0 && (

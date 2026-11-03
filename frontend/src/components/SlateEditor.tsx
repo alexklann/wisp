@@ -17,6 +17,7 @@ interface Props {
   setAttachments: Dispatch<SetStateAction<File[]>>;
   isUploading: boolean;
   sendMessage: () => Promise<void>;
+  currentMessageContext: number;
   setCurrentMessageContext: Dispatch<SetStateAction<number>>;
 }
 
@@ -25,6 +26,7 @@ export default function SlateEditor({
   setAttachments,
   isUploading,
   sendMessage,
+  currentMessageContext,
   setCurrentMessageContext
 }: Props) {
   const replyingMessageId = useUIStore((state) => state.replyingMessageId);
@@ -72,13 +74,17 @@ export default function SlateEditor({
     // We have to use event.code because otherwise
     // the option+numbers get interpreted as special chars on macos.
     const CONTEXT_BY_CODE = new Map([
-      ["Digit1", 0], ["Digit2", 1], ["Digit3", 2], ["Digit4", 3], ["Digit5", 4],
+      ["Digit1", 1], ["Digit2", 2], ["Digit3", 3], ["Digit0", 0],
     ]);
 
     // If we're pressing 1/2/3/4/5
     const context = CONTEXT_BY_CODE.get(event.code);
     if (event.altKey && context !== undefined) {
       event.preventDefault();
+      if (context === currentMessageContext) {
+        setCurrentMessageContext(0);
+        return;
+      }
       setCurrentMessageContext(context);
     }
 

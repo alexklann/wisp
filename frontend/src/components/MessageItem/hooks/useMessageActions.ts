@@ -4,13 +4,6 @@ import { useChatStore } from "../../../stores/useChatStore";
 import { useUIStore } from "../../../stores/useUIStore";
 import type Message from "../../../types/message";
 
-const MESSAGE_CONTEXT_COLORS: Record<number, string | undefined> = {
-  0: "transparent",
-  1: "#F2AF29",
-  2: "#F52977",
-  3: "#187EF0",
-};
-
 export function useMessageActions() {
   const token = useAuthStore((state) => state.token);
 
@@ -127,6 +120,5 @@ export function useMessageActions() {
     deleteMessage,
     setReplyingMessage,
     setMessageContext,
-    MESSAGE_CONTEXT_COLORS,
   };
 }

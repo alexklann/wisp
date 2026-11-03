@@ -4,7 +4,7 @@ import remarkGfm from "remark-gfm";
 import { useUIStore } from "../../../stores/useUIStore";
 import InlineMessageEditor from "../../InlineMessageEditor";
 import remarkBreaks from "remark-breaks";
-import { useMessageActions } from "../hooks/useMessageActions";
+import MESSAGE_CONTEXT_COLORS from "../../../lib/contextColors";
 
 export default function MessageContent({
   messageId,
@@ -15,8 +15,6 @@ export default function MessageContent({
   messageContent: string | null;
   messageContext: number | null;
 }) {
-  const { MESSAGE_CONTEXT_COLORS } = useMessageActions();
-
   const editingMessageId = useUIStore((state) => state.editingMessageId);
 
   if (editingMessageId === messageId) {

@@ -3,7 +3,7 @@ import FileIcon from "../../../icons/FileIcon";
 import { useUIStore } from "../../../stores/useUIStore";
 import type { Attachment } from "../../../types/message";
 import AudioAttachment from "../../AudioAttachment";
-import { useMessageActions } from "../hooks/useMessageActions";
+import MESSAGE_CONTEXT_COLORS from "../../../lib/contextColors";
 
 export default function MessageAttachments({
   messageAttachments,
@@ -12,8 +12,6 @@ export default function MessageAttachments({
   messageAttachments: Attachment[];
   messageContext: number | null;
 }) {
-  const { MESSAGE_CONTEXT_COLORS } = useMessageActions();
-
   const setSelectedImageURL = useUIStore((state) => state.setSelectedImageURL);
   const setSelectedImageFilename = useUIStore(
     (state) => state.setSelectedImageFilename,
