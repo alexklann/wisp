@@ -10,6 +10,7 @@ import data from "@emoji-mart/data";
 import { Transforms } from "slate";
 import PaperplaneIcon from "../icons/PaperplaneIcon";
 import MESSAGE_CONTEXT_COLORS from "../lib/contextColors";
+import { chatFocus } from "../lib/chatFocus";
 
 const EMOJI_LIST = [
   "😀",
@@ -29,7 +30,7 @@ const EMOJI_LIST = [
   "🧸",
 ];
 
-export default function ChatInput() {
+export default function ChatInput({ chatInputHook }: { chatInputHook: ReturnType<typeof useChatInput> }) {
   const {
     editor,
     attachments,
@@ -40,7 +41,10 @@ export default function ChatInput() {
     uploadProgress,
     currentMessageContext,
     setCurrentMessageContext,
-  } = useChatInput();
+    focusEditor
+  } = chatInputHook;
+
+  chatFocus.current = focusEditor;
 
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
   const [emojiButtonIndex, setEmojiButtonIndex] = useState<number>(0);
@@ -107,6 +111,7 @@ export default function ChatInput() {
   const onEmojiSelect = (e: any) => {
     Transforms.insertText(editor, e["native"]);
     setShowEmojiPicker(false);
+    focusEditor();
   };
 
   const removeReply = () => {
@@ -150,14 +155,17 @@ export default function ChatInput() {
         />
         {replyingMessageId && (
           <div
-            onClick={() => removeReply()}
+            onClick={() => {
+              removeReply();
+              focusEditor();
+            }}
             title="Stop replying"
             className="flex flex-row gap-2 items-center text-sm px-2 py-1 border-b border-stroke hover:line-through cursor-pointer"
           >
-            <span>Replying to:</span>
-            <div className="flex flex-row gap-1 px-2 py-1 border border-stroke rounded-lg">
-              <span className="font-bold">{replyingMessageUsername}:</span>
-              <span>
+            <span className="shrink-0">Replying to:</span>
+            <div className="flex flex-row gap-1 px-2 py-1 border border-stroke rounded-lg min-w-0">
+              <span className="font-bold shrink-0">{replyingMessageUsername}:</span>
+              <span className="flex-1 truncate">
                 {replyingMessageContent && replyingMessageContent.length > 0
                   ? replyingMessageContent
                   : replyingMessageHasAttachment
@@ -200,7 +208,10 @@ export default function ChatInput() {
           </button>
           <button
             className="flex items-center justify-center h-8 aspect-square hover:bg-white/5 rounded-lg cursor-pointer"
-            onClick={async () => await sendMessage()}
+            onClick={async () => {
+              await sendMessage();
+              focusEditor();
+            }}
           >
             <PaperplaneIcon className="text-white w-[75%] aspect-square" />
           </button>

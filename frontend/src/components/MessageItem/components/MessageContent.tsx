@@ -5,6 +5,8 @@ import { useUIStore } from "../../../stores/useUIStore";
 import InlineMessageEditor from "../../InlineMessageEditor";
 import remarkBreaks from "remark-breaks";
 import MESSAGE_CONTEXT_COLORS from "../../../lib/contextColors";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { dark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 export default function MessageContent({
   messageId,
@@ -26,6 +28,7 @@ export default function MessageContent({
     );
   }
 
+
   return (
     <div
       className={messageContext !== 0 && messageContext !== null ? `border-l-6 pl-2` : ""}
@@ -37,6 +40,32 @@ export default function MessageContent({
           [rehypeExternalLinks, { target: "_blank", rel: ["noreferrer"] }],
         ]}
         remarkPlugins={[remarkGfm, remarkBreaks]}
+        components={{
+          code(props) {
+            const { children, className, node, ...rest } = props
+            const match = /language-(\w+)/.exec(className || '')
+            return match ? (
+              <SyntaxHighlighter
+                PreTag="div"
+                children={String(children).replace(/\n$/, '')}
+                language={match[1]}
+                style={dark}
+                customStyle={{
+                  margin: 0,
+                  padding: 0,
+                  background: "transparent",
+                  border: 0,
+                  boxShadow: "none",
+                  textShadow: "none",
+                }}
+              />
+            ) : (
+              <code {...rest} className={className}>
+                {children}
+              </code>
+            )
+          }
+        }}
       >
         {messageContent}
       </Markdown>

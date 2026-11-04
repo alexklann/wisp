@@ -20,6 +20,7 @@ import PinIcon from "../icons/PinIcon";
 import SpinnerIcon from "../icons/SpinnerIcon";
 import { twMerge } from "tailwind-merge";
 import MessageActionSheet from "./MessageItem/components/MessageActionSheet";
+import { useChatInput } from "../hooks/useChatInput";
 
 function ConnectionOverlay() {
   const { socket, attemptCount } = useWebsocket();
@@ -139,6 +140,7 @@ export default function ChatInterface() {
 
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
+  const chatInputHook = useChatInput();
   const { typingUsernames } = useTyping();
 
   const scrollToBottom = () =>
@@ -371,7 +373,7 @@ export default function ChatInterface() {
           )}
         </div>
 
-        <div className="min-h-4 px-2">
+        <div className="min-h-6 px-2">
           {typingUsernames.length > 0 && (
             <span className="text-xs font-medium text-white/60 animate-pulse">
               {typingUsernames.join(", ")}{" "}
@@ -393,7 +395,7 @@ export default function ChatInterface() {
           Back to bottom
         </button>
 
-        <ChatInput />
+        <ChatInput chatInputHook={chatInputHook} />
       </main>
     </>
   );

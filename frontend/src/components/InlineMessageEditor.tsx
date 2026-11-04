@@ -4,6 +4,7 @@ import { Slate, Editable, withReact, ReactEditor } from "slate-react";
 import { useTyping } from "../hooks/useTyping";
 import { useAuthStore } from "../stores/useAuthStore";
 import { useUIStore } from "../stores/useUIStore";
+import { chatFocus } from "../lib/chatFocus";
 
 interface Props {
   messageUUID: number;
@@ -66,6 +67,7 @@ export default function InlineMessageEditor({
         }
 
         setEditingMessageId(null);
+        requestAnimationFrame(() => chatFocus.current?.());
       } catch (error) {
         console.error(error);
       }
@@ -75,6 +77,7 @@ export default function InlineMessageEditor({
     } else if (event.key === "Escape") {
       event.preventDefault();
       setEditingMessageId(null);
+      requestAnimationFrame(() => chatFocus.current?.());
     }
   };
 

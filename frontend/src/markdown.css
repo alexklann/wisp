@@ -13,6 +13,13 @@ h3 {
     font-weight: bold;
 }
 
+p {
+  margin-bottom: 1rem;
+}
+p:last-child {
+  margin-bottom: 0;
+}
+
 blockquote {
     background-color: #242424;
     border-left: 4px solid #484848;
@@ -29,6 +36,11 @@ ul {
 ol {
     list-style-type: decimal;
     padding-left: 24px;
+}
+
+ul.contains-task-list {
+    list-style: none;
+    padding-left: 0;
 }
 
 a {

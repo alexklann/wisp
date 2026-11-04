@@ -6,10 +6,11 @@ import { useAuthStore } from "../stores/useAuthStore";
 import { uploadFileWithProgress } from "../lib/UploadFileWithProgress";
 import { useChatStore } from "../stores/useChatStore";
 import { useUIStore } from "../stores/useUIStore";
+import { withHistory } from "slate-history";
 
 export function useChatInput() {
   const { socket } = useWebsocket();
-  const [editor] = useState(() => withReact(createEditor()));
+  const [editor] = useState(() => withReact(withHistory(createEditor())));
   const activeChannelId = useChatStore((state) => state.activeChannelId);
 
   const user = useAuthStore((state) => state.user);
@@ -29,7 +30,7 @@ export function useChatInput() {
   );
 
   const sendMessage = async () => {
-    const text = Node.string(editor);
+    const text = editor.children.map((node) => Node.string(node)).join("\n");
     if (text.trim().length === 0 && attachments.length === 0) return;
     if (!socket || !user || isUploading) return;
 
@@ -88,6 +89,10 @@ export function useChatInput() {
     setAttachments((prev) => prev.filter((f) => f.name !== fileNameToRemove));
   };
 
+  const focusEditor = () => {
+    ReactEditor.focus(editor);
+  }
+
   return {
     editor,
     attachments,
@@ -99,5 +104,6 @@ export function useChatInput() {
     uploadProgress,
     currentMessageContext,
     setCurrentMessageContext,
+    focusEditor,
   };
 }
