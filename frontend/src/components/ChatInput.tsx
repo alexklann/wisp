@@ -7,10 +7,11 @@ import PaperclipIcon from "../icons/PaperclipIcon";
 import { useUIStore } from "../stores/useUIStore";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
-import { Transforms } from "slate";
+import { Editor, Transforms } from "slate";
 import PaperplaneIcon from "../icons/PaperplaneIcon";
 import MESSAGE_CONTEXT_COLORS from "../lib/contextColors";
 import { chatFocus } from "../lib/chatFocus";
+import { ReactEditor } from "slate-react";
 
 const EMOJI_LIST = [
   "😀",
@@ -76,6 +77,13 @@ export default function ChatInput({ chatInputHook }: { chatInputHook: ReturnType
   const pickerRef = useRef<HTMLDivElement>(null);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
 
+  const lastSelectionRef = useRef(editor.selection);
+
+  const onEmojiButtonClick = () => {
+    lastSelectionRef.current = editor.selection;
+    setShowEmojiPicker((v) => !v);
+  }
+
   useEffect(() => {
     if (!showEmojiPicker) return;
 
@@ -109,9 +117,24 @@ export default function ChatInput({ chatInputHook }: { chatInputHook: ReturnType
   });
 
   const onEmojiSelect = (e: any) => {
-    Transforms.insertText(editor, e["native"]);
+    const emoji: string = e.native;
+
+    ReactEditor.focus(editor);
+
+    if (editor.selection == null) {
+      Transforms.select(editor, lastSelectionRef.current ?? Editor.end(editor, []));
+    }
+
+    Transforms.insertText(editor, emoji);
+
+    const caret = editor.selection?.anchor;
+
     setShowEmojiPicker(false);
-    focusEditor();
+
+    requestAnimationFrame(() => {
+      ReactEditor.focus(editor);
+      if (caret) Transforms.select(editor, caret);
+    });
   };
 
   const removeReply = () => {
@@ -197,7 +220,7 @@ export default function ChatInput({ chatInputHook }: { chatInputHook: ReturnType
           <button
             ref={emojiButtonRef}
             className="group flex items-center justify-center h-8 aspect-square hover:bg-white/5 rounded-lg cursor-pointer"
-            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            onClick={onEmojiButtonClick}
             onMouseLeave={() =>
               setEmojiButtonIndex((emojiButtonIndex + 1) % EMOJI_LIST.length)
             }
