@@ -170,7 +170,29 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
 
     connect();
 
+    const resume = () => {
+      if (document.visibilityState !== "visible") return;
+
+      const ws = wsRef.current;
+      if (ws && ws.readyState !== WebSocket.CLOSED) return;
+
+      if (reconnectTimeout.current) {
+        clearTimeout(reconnectTimeout.current);
+        reconnectTimeout.current = null;
+      }
+
+      attempts.current = 0;
+      console.log("Window focused, socket is down. Reconnecting...");
+      connect();
+    };
+
+    window.addEventListener("focus", resume);
+    document.addEventListener("visibilitychange", resume);
+
     return () => {
+      window.removeEventListener("focus", resume);
+      document.removeEventListener("visibilitychange", resume);
+
       if (reconnectTimeout.current) {
         clearTimeout(reconnectTimeout.current);
       }

@@ -8,6 +8,7 @@ import ModalPortal from "./components/ModalPortal";
 import { useEffect } from "react";
 import MemberSidebar from "./components/MemberSidebar";
 import { Toaster } from "react-hot-toast";
+import { useStaleBuild } from "./lib/useStaleBuild";
 
 /**
  * AI-Generated with DeepSeek-v4 Flash
@@ -25,7 +26,22 @@ function urlBase64ToUint8Array(base64String: string) {
   return outputArray;
 }
 
+function UpdateBanner({ live }: { live: string | null }) {
+  if (!live) return null;
+
+  return (
+    <div className="absolute inset-0 bg-black/50 z-90 flex justify-center items-center">
+      <div className="flex flex-col w-full sm:w-fit bg-surface border border-stroke p-4 rounded-md text-text mx-4">
+        <h2>New Version!</h2>
+        <span className="text-sm text-text/50">Version {live}</span>
+        <span>Reload the app to get the newest version!</span>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
+  const liveBuild = useStaleBuild();
   const token = useAuthStore((state) => state.token);
   const renderedPage = useUIStore((state) => state.renderedPage);
 
@@ -83,6 +99,7 @@ export default function App() {
   if (renderedPage == "index") {
     return (
       <>
+        <UpdateBanner live={liveBuild} />
         <Toaster position="bottom-right" />
         <ModalPortal />
         <WebsocketProvider>

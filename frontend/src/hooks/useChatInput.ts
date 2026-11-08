@@ -26,7 +26,9 @@ export function useChatInput() {
   const clearReplyingMessage = useUIStore(
     (state) => state.clearReplyingMessage,
   );
-  const currentMessageContext = useUIStore((state) => state.currentMessageContext);
+  const currentMessageContext = useUIStore(
+    (state) => state.currentMessageContext,
+  );
 
   const sendMessage = async () => {
     const text = editor.children.map((node) => Node.string(node)).join("\n");
@@ -66,6 +68,10 @@ export function useChatInput() {
           focus: Editor.end(editor, []),
         },
       });
+
+      editor.history.undos = [];
+      editor.history.redos = [];
+
       clearReplyingMessage();
       setAttachments([]);
       setUploadProgress({});
@@ -90,7 +96,7 @@ export function useChatInput() {
 
   const focusEditor = () => {
     ReactEditor.focus(editor);
-  }
+  };
 
   return {
     editor,

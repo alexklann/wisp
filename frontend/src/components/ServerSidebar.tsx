@@ -8,6 +8,7 @@ import CloseIcon from "../icons/CloseIcon";
 import HDDIcon from "../icons/HDDIcon";
 import BaseActionButton from "./BaseActionButton";
 import UserIcon from "../icons/UserIcon";
+import { formatBuildId } from "../lib/buildId";
 
 export default function ServerSidebar() {
   const token = useAuthStore((state) => state.token);
@@ -212,10 +213,14 @@ export default function ServerSidebar() {
         </div>
       </div>
       <div className="flex flex-row items-end mt-auto">
-        <span className="w-full text-sm text-text/20 font-bold">
-          Wisp 5 1.5.3a
-        </span>
-        <div className="flex flex-row gap-2">
+        <div
+          className="flex flex-col w-full text-sm text-text/20 font-bold"
+          title={__BUILD_ID__}
+        >
+          <span>Wisp 5</span>
+          <span>{formatBuildId(__BUILD_ID__)}</span>
+        </div>
+        <div className="flex flex-col gap-2">
           <BaseActionButton
             title="Server Usage"
             onClick={() => openModal("serverUsage")}
@@ -223,7 +228,7 @@ export default function ServerSidebar() {
             <HDDIcon className="text-text w-[75%] aspect-square" />
           </BaseActionButton>
           <BaseActionButton
-            title="Server Usage"
+            title="Edit User Profile"
             onClick={() => openModal("userEdit")}
           >
             <UserIcon className="text-text w-[75%] aspect-square" />

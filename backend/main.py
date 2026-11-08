@@ -108,13 +108,27 @@ app.include_router(ws.router)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 STATIC_DIR = "static"
+ASSETS_DIR = os.path.join(STATIC_DIR, "assets")
+INDEX_FILE = os.path.join(STATIC_DIR, "index.html")
 
-app.mount("/assets", StaticFiles(directory=f"{STATIC_DIR}/assets"), name="assets")
+if os.path.isdir(ASSETS_DIR):
+    app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
+else:
+    print(
+        f"No frontend build found at '{ASSETS_DIR}', skipping static asset mount. "
+        "Run `bun run build` in frontend/ to serve the app from the backend."
+    )
 
 
 @app.get("/{path:path}")
 async def spa(path: str):
+    if not os.path.isfile(INDEX_FILE):
+        raise HTTPException(
+            status_code=404,
+            detail="Frontend build not found. Run `bun run build` in frontend/.",
+        )
+
     candidate = os.path.join(STATIC_DIR, path)
     if path and os.path.isfile(candidate):
         return FileResponse(candidate)
-    return FileResponse(f"{STATIC_DIR}/index.html")
+    return FileResponse(INDEX_FILE)

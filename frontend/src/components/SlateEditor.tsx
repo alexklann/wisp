@@ -11,9 +11,10 @@ import { useTyping } from "../hooks/useTyping";
 import { useChatStore } from "../stores/useChatStore";
 import { useAuthStore } from "../stores/useAuthStore";
 import { useUIStore } from "../stores/useUIStore";
+import type { HistoryEditor } from "slate-history";
 
 interface Props {
-  editor: BaseEditor & ReactEditor;
+  editor: BaseEditor & ReactEditor & HistoryEditor;
   setAttachments: Dispatch<SetStateAction<File[]>>;
   isUploading: boolean;
   sendMessage: () => Promise<void>;
@@ -34,8 +35,12 @@ export default function SlateEditor({
 
   const setEditingMessageId = useUIStore((state) => state.setEditingMessageId);
 
-  const currentMessageContext = useUIStore((state) => state.currentMessageContext);
-  const setCurrentMessageContext = useUIStore((state) => state.setCurrentMessageContext);
+  const currentMessageContext = useUIStore(
+    (state) => state.currentMessageContext,
+  );
+  const setCurrentMessageContext = useUIStore(
+    (state) => state.setCurrentMessageContext,
+  );
 
   const { notifyTyping } = useTyping();
 
@@ -73,7 +78,10 @@ export default function SlateEditor({
     // We have to use event.code because otherwise
     // the option+numbers get interpreted as special chars on macos.
     const CONTEXT_BY_CODE = new Map([
-      ["Digit1", 1], ["Digit2", 2], ["Digit3", 3], ["Digit0", 0],
+      ["Digit1", 1],
+      ["Digit2", 2],
+      ["Digit3", 3],
+      ["Digit0", 0],
     ]);
 
     // If we're pressing 1/2/3/4/5
@@ -85,6 +93,34 @@ export default function SlateEditor({
         return;
       }
       setCurrentMessageContext(context);
+    }
+
+    // CTRL + Y
+    if (
+      (event.ctrlKey || event.metaKey) &&
+      !event.shiftKey &&
+      event.key.toLowerCase() === "y"
+    ) {
+      event.preventDefault();
+      editor.redo();
+      return;
+    }
+
+    // CTRL + SHIFT + Z
+    if (
+      (event.ctrlKey || event.metaKey) &&
+      event.shiftKey &&
+      event.key.toLowerCase() === "z"
+    ) {
+      event.preventDefault();
+      editor.redo();
+      return;
+    }
+
+    if (event.key === "Tab") {
+      event.preventDefault();
+      editor.insertText("\t");
+      return;
     }
 
     if (event.key === "Enter") {

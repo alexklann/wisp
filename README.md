@@ -32,27 +32,20 @@ cd wisp
 
 # Install and start the frontend
 cd frontend
-bun run install
+bun install
 bun run dev --port 3000
 
 # Install and start the backend
 cd backend
 uv sync
-uv run fastapi dev --port 3001
+uv run fastapi dev
 ```
 
-This project requires various .env files to work.
 In the backend folder, create a .env file with the following:
 
 ```
 token_secret="" # A generated secret using openssl
 ```
-
-## AI Usage
-
-This project is not and will never be vibe-coded. All code is written by hand, by humans.<br/>
-AI was only used during debugging and architectural decision making. Nothing was automated.<br/>
-The `AGENTS.md` file exists for easier context-filling for AI models.
 
 ## License
 
