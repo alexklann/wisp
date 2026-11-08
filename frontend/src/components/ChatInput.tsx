@@ -40,8 +40,6 @@ export default function ChatInput({ chatInputHook }: { chatInputHook: ReturnType
     sendMessage,
     isUploading,
     uploadProgress,
-    currentMessageContext,
-    setCurrentMessageContext,
     focusEditor
   } = chatInputHook;
 
@@ -62,6 +60,10 @@ export default function ChatInput({ chatInputHook }: { chatInputHook: ReturnType
   const setReplyingMessageHasAttachment = useUIStore(
     (state) => state.setReplyingMessageHasAttachment,
   );
+
+  const setCurrentMessageContext = useUIStore((state) => state.setCurrentMessageContext);
+
+  const currentMessageContext = useUIStore((state) => state.currentMessageContext);
 
   const replyingMessageId = useUIStore((state) => state.replyingMessageId);
   const replyingMessageContent = useUIStore(
@@ -142,6 +144,7 @@ export default function ChatInput({ chatInputHook }: { chatInputHook: ReturnType
     setReplyingMessageHasAttachment(false);
     setReplyingMessageId(null);
     setReplyingMessageUsername(null);
+    setCurrentMessageContext(0);
   };
 
   return (
@@ -211,8 +214,6 @@ export default function ChatInput({ chatInputHook }: { chatInputHook: ReturnType
             setAttachments={setAttachments}
             isUploading={isUploading}
             sendMessage={sendMessage}
-            currentMessageContext={currentMessageContext}
-            setCurrentMessageContext={setCurrentMessageContext}
           />
           {currentMessageContext > 0 && (
             <span className="hidden md:block h-fit text-xs text-text/50">{currentMessageContext}</span>

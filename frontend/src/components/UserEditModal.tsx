@@ -44,20 +44,17 @@ export default function UserEditModal() {
       const fileFormData = new FormData();
       fileFormData.append("file", avatar);
 
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/upload/`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: fileFormData,
+      const response = await fetch(`/api/upload/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: fileFormData,
+      });
 
       if (response.ok) {
         const responseBody = await response.json();
-        avatar_url = `${import.meta.env.VITE_BACKEND_URL}${responseBody.url}`;
+        avatar_url = `/api${responseBody.url}`;
         setAvatarStatus("success");
       } else {
         console.log(response.text);
@@ -85,17 +82,14 @@ export default function UserEditModal() {
       };
     }
 
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/users/me/`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
+    const response = await fetch(`/api/users/me/`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-    );
+      body: JSON.stringify(payload),
+    });
 
     if (response.ok) {
       const responseBody = await response.json();

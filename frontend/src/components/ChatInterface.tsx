@@ -164,7 +164,7 @@ export default function ChatInterface() {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/channels/${activeChannelId}/messages/?before=${oldestMessageId}&limit=150`,
+        `/api/channels/${activeChannelId}/messages/?before=${oldestMessageId}&limit=150`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -191,7 +191,7 @@ export default function ChatInterface() {
     setPinnedMessagesLoadingState("loading");
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/channels/${activeChannelId}/messages/pinned/`,
+        `/api/channels/${activeChannelId}/messages/pinned/`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

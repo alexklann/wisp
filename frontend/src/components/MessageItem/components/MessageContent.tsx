@@ -24,6 +24,7 @@ export default function MessageContent({
       <InlineMessageEditor
         messageUUID={messageId}
         initialMessage={messageContent ?? ""}
+        messageContext={messageContext ?? 0}
       />
     );
   }

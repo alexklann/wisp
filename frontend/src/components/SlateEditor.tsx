@@ -17,8 +17,6 @@ interface Props {
   setAttachments: Dispatch<SetStateAction<File[]>>;
   isUploading: boolean;
   sendMessage: () => Promise<void>;
-  currentMessageContext: number;
-  setCurrentMessageContext: Dispatch<SetStateAction<number>>;
 }
 
 export default function SlateEditor({
@@ -26,8 +24,6 @@ export default function SlateEditor({
   setAttachments,
   isUploading,
   sendMessage,
-  currentMessageContext,
-  setCurrentMessageContext
 }: Props) {
   const replyingMessageId = useUIStore((state) => state.replyingMessageId);
   const user = useAuthStore((state) => state.user);
@@ -37,6 +33,9 @@ export default function SlateEditor({
     window.matchMedia("(hover: none) and (pointer: coarse)").matches;
 
   const setEditingMessageId = useUIStore((state) => state.setEditingMessageId);
+
+  const currentMessageContext = useUIStore((state) => state.currentMessageContext);
+  const setCurrentMessageContext = useUIStore((state) => state.setCurrentMessageContext);
 
   const { notifyTyping } = useTyping();
 

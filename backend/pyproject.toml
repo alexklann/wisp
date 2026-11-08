@@ -19,3 +19,4 @@ dependencies = [
     "sqlmodel>=0.0.37",
     "webpush>=1.0.6",
 ]
+

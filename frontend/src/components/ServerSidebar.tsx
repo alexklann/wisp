@@ -42,15 +42,12 @@ export default function ServerSidebar() {
 
     if (serverFetchStatus === "idle") {
       const fetchServers = async () => {
-        const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/servers/`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+        const response = await fetch(`/api/servers/`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-        );
+        });
 
         if (response.ok) {
           const responseBody = await response.json();
@@ -71,7 +68,7 @@ export default function ServerSidebar() {
 
   const fetchMessages = async (channelId: string) => {
     const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/channels/${channelId}/messages/?offset=0&limit=150`,
+      `/api/channels/${channelId}/messages/?offset=0&limit=150`,
       {
         method: "GET",
         headers: {
@@ -97,13 +94,10 @@ export default function ServerSidebar() {
     let cancelled = false;
 
     const fetchChannels = async () => {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/servers/${activeServerId}/channels/`,
-        {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      const response = await fetch(`/api/servers/${activeServerId}/channels/`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (cancelled) return;
 

@@ -20,28 +20,27 @@ export default function MessageAttachments({
   if (messageAttachments.length === 0) return <></>;
   return (
     <div
-      className={
-        twMerge(
-          "flex flex-col gap-2",
-          messageContext !== 0 && messageContext !== null ? `border-l-6 pl-2` : "",
-        )
-      }
+      className={twMerge(
+        "flex flex-col gap-2",
+        messageContext !== 0 && messageContext !== null
+          ? `border-l-6 pl-2`
+          : "",
+      )}
       style={{
         borderColor: `color-mix(in srgb, ${MESSAGE_CONTEXT_COLORS[messageContext ?? 0]} 50%, transparent)`,
-      }}>
+      }}
+    >
       {messageAttachments.map((attachment: Attachment) =>
         attachment.file_type.startsWith("image/") ? (
           <img
             onSelect={(event) => event.preventDefault()}
             key={`image_${attachment.id}`}
             onClick={() => {
-              setSelectedImageURL(
-                `${import.meta.env.VITE_BACKEND_URL}${attachment.url}`,
-              );
+              setSelectedImageURL(`${attachment.url}`);
               setSelectedImageFilename(attachment.id);
             }}
             className="max-w-[40%] md:max-w-32 cursor-pointer rounded-lg"
-            src={`${import.meta.env.VITE_BACKEND_URL}${attachment.url.split(".webp")[0]}_thumb.webp`}
+            src={`${attachment.url.split(".webp")[0]}_thumb.webp`}
           />
         ) : attachment.file_type.startsWith("audio/") ? (
           <AudioAttachment
@@ -53,12 +52,12 @@ export default function MessageAttachments({
             key={`video_${attachment.id}`}
             controls
             className="max-w-full w-full h-72 md:w-fit"
-            src={`${import.meta.env.VITE_BACKEND_URL}${attachment.url}`}
+            src={`${attachment.url}`}
             preload="metadata"
           />
         ) : (
           <a
-            href={`${import.meta.env.VITE_BACKEND_URL}/download/${attachment.id}`}
+            href={`/api/download/${attachment.id}`}
             download
             target="_blank"
             title="Download file"

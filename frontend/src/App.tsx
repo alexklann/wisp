@@ -44,9 +44,7 @@ export default function App() {
 
         const existing = await registration.pushManager.getSubscription();
         if (!existing) {
-          const response = await fetch(
-            `${import.meta.env.VITE_BACKEND_URL}/push/key`,
-          );
+          const response = await fetch("/api/push/key");
           if (!response.ok) {
             console.error("Error fetching public key from backend");
             return;
@@ -59,7 +57,7 @@ export default function App() {
             applicationServerKey: urlBase64ToUint8Array(json.publicKey),
           });
 
-          await fetch(`${import.meta.env.VITE_BACKEND_URL}/push/subscribe`, {
+          await fetch("/api/push/subscribe", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

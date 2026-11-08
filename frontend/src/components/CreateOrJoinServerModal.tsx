@@ -6,7 +6,7 @@ import ModalTitle from "./Modal/components/ModalTitle";
 import { useAuthStore } from "../stores/useAuthStore";
 
 interface ModalProps {
-  setDisplayingModal: Dispatch<SetStateAction<"create" | "join">>
+  setDisplayingModal: Dispatch<SetStateAction<"create" | "join">>;
 }
 
 function JoinServerModal({ setDisplayingModal }: ModalProps) {
@@ -20,15 +20,12 @@ function JoinServerModal({ setDisplayingModal }: ModalProps) {
 
     const serverId = joinServerInput.current.value;
 
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/servers/${serverId}/join/`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    const response = await fetch(`/api/servers/${serverId}/join/`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
-    );
+    });
 
     if (response.ok) {
       // Maybe replace with a centralized "fetchServers" function
@@ -71,7 +68,7 @@ function JoinServerModal({ setDisplayingModal }: ModalProps) {
         </button>
       </div>
     </Modal>
-  )
+  );
 }
 
 function CreateServerModal({ setDisplayingModal }: ModalProps) {
@@ -85,19 +82,16 @@ function CreateServerModal({ setDisplayingModal }: ModalProps) {
 
     const serverName = createServerInput.current.value;
 
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/servers/`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: serverName,
-        }),
+    const response = await fetch("/api/servers", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-    );
+      body: JSON.stringify({
+        name: serverName,
+      }),
+    });
 
     if (response.ok) {
       // Maybe replace with a centralized "fetchServers" function
@@ -140,21 +134,17 @@ function CreateServerModal({ setDisplayingModal }: ModalProps) {
         </button>
       </div>
     </Modal>
-  )
+  );
 }
 
 export default function CreateOrJoinServerModal() {
-  const [displayingModal, setDisplayingModal] = useState<"create" | "join">("create");
+  const [displayingModal, setDisplayingModal] = useState<"create" | "join">(
+    "create",
+  );
 
   if (displayingModal === "create") {
-    return (
-      <CreateServerModal setDisplayingModal={setDisplayingModal} />
-    );
+    return <CreateServerModal setDisplayingModal={setDisplayingModal} />;
   } else {
-    return (
-      <JoinServerModal setDisplayingModal={setDisplayingModal} />
-    )
+    return <JoinServerModal setDisplayingModal={setDisplayingModal} />;
   }
-
-
 }

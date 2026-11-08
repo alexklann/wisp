@@ -20,11 +20,7 @@ export default function AudioAttachment({
           {(attachment.file_size / 1000 / 1000).toFixed(2)}
           MB
         </span>
-        <audio
-          className="w-full"
-          controls
-          src={`${import.meta.env.VITE_BACKEND_URL}${attachment.url}`}
-        />
+        <audio className="w-full" controls src={`/api${attachment.url}`} />
       </div>
     </div>
   );

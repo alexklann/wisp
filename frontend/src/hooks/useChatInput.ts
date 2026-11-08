@@ -22,12 +22,11 @@ export function useChatInput() {
   );
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
-  const [currentMessageContext, setCurrentMessageContext] = useState<number>(0);
-
   const replyingMessageId = useUIStore((state) => state.replyingMessageId);
   const clearReplyingMessage = useUIStore(
     (state) => state.clearReplyingMessage,
   );
+  const currentMessageContext = useUIStore((state) => state.currentMessageContext);
 
   const sendMessage = async () => {
     const text = editor.children.map((node) => Node.string(node)).join("\n");
@@ -102,8 +101,6 @@ export function useChatInput() {
     sendMessage,
     isUploading,
     uploadProgress,
-    currentMessageContext,
-    setCurrentMessageContext,
     focusEditor,
   };
 }

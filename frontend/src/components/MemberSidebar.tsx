@@ -35,15 +35,12 @@ export default function MemberSidebar() {
   const fetchMembers = async () => {
     setFetchStatus("loading");
 
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/servers/${activeServerId}/members/`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    const response = await fetch(`/api/servers/${activeServerId}/members/`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
-    );
+    });
 
     if (response.ok) {
       const responseBody: Member[] = await response.json();

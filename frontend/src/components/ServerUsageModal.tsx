@@ -77,7 +77,7 @@ export default function ServerUsageModal() {
 
       setFetchStatus("loading");
 
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/usage`);
+      const response = await fetch(`/api/usage`);
 
       if (response.ok) {
         const responseBody = (await response.json()) as ServerUsage;

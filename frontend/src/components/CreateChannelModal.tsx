@@ -23,19 +23,16 @@ export default function CreateChannelModal() {
 
     const channelName = createChannelInput.current.value;
 
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/servers/${activeServerId}/channels/`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: channelName,
-        }),
+    const response = await fetch(`/api/servers/${activeServerId}/channels/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-    );
+      body: JSON.stringify({
+        name: channelName,
+      }),
+    });
 
     if (response.ok) {
       const responseBody = await response.json();

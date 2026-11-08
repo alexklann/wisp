@@ -27,6 +27,8 @@ export default function MessageActionSheet() {
 
   const setEditingMessageId = useUIStore((state) => state.setEditingMessageId);
 
+  const setCurrentMessageContext = useUIStore((state) => state.setCurrentMessageContext);
+
   const show =
     useUIStore((state) => state.messageActionSheetSelectedMessageId) !== null;
 
@@ -74,7 +76,10 @@ export default function MessageActionSheet() {
             <BaseActionButton
               className="justify-start px-4 gap-4 flex w-full"
               title="Reply to Message"
-              onClick={() => setReplyingMessage(renderedMessage)}
+              onClick={() => {
+                setReplyingMessage(renderedMessage);
+                setCurrentMessageContext(renderedMessage.context ?? 0);
+              }}
             >
               <ReplyIcon className="text-text aspect-square" />
               <span className="text-text text-sm select-none">
@@ -126,7 +131,7 @@ export default function MessageActionSheet() {
                 <BaseActionButton
                   className="justify-start px-4 gap-4 flex w-full"
                   title="Edit Message"
-                  onClick={() => setEditingMessageId(renderedMessage.id)}
+                  onClick={() => setEditingMessageId(renderedMessage.id) }
                 >
                   <EditIcon className="text-text aspect-square" />
                   <span className="text-text text-sm select-none">

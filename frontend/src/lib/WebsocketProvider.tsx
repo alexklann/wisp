@@ -24,7 +24,9 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
   const addMessage = useChatStore((state) => state.addMessage);
   const deleteMessage = useChatStore((state) => state.deleteMessage);
   const editMessage = useChatStore((state) => state.editMessage);
-  const updateMessageContext = useChatStore((state) => state.updateMessageContext);
+  const updateMessageContext = useChatStore(
+    (state) => state.updateMessageContext,
+  );
 
   const attempts = useRef(0);
   const [attemptCount, setAttemptCount] = useState<number>(0);
@@ -56,9 +58,7 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
       console.log(
         `Attempting to connect WebSocket to backend server; attempt: [${attempts.current}] / delay: [${Math.min(1000 * 2 ** attempts.current, 10000)}]`,
       );
-      const ws = new WebSocket(
-        `${import.meta.env.VITE_BACKEND_URL}/ws?token=${token}`,
-      );
+      const ws = new WebSocket(`/ws?token=${token}`);
       wsRef.current = ws;
 
       ws.onopen = () => {
@@ -78,7 +78,7 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
 
           if (token) {
             fetch(
-              `${import.meta.env.VITE_BACKEND_URL}/channels/${activeChannelId}/messages/?offset=0&limit=150`,
+              `/api/channels/${activeChannelId}/messages/?offset=0&limit=150`,
               {
                 method: "GET",
                 headers: {

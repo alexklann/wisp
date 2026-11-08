@@ -19,6 +19,8 @@ export default function MessageActions({ message }: Props) {
   const editingMessageId = useUIStore((state) => state.editingMessageId);
   const setEditingMessageId = useUIStore((state) => state.setEditingMessageId);
 
+  const setCurrentMessageContext = useUIStore((state) => state.setCurrentMessageContext);
+
   const { pinMessage, deleteMessage, setReplyingMessage, setMessageContext } = useMessageActions();
 
   const [isMessagePinned, setIsMessagePinned] = useState<boolean>(
@@ -31,6 +33,11 @@ export default function MessageActions({ message }: Props) {
     }
     setEditingMessageId(message.id);
   };
+
+  const onReplyMessageButtonClicked = () => {
+    setReplyingMessage(message);
+    setCurrentMessageContext(message.context ?? 0);
+  }
 
   // Message DOES NOT belong to user
   if (!user || message.sender_id != user.id) {
@@ -47,7 +54,7 @@ export default function MessageActions({ message }: Props) {
         </BaseActionButton>
         <BaseActionButton
           title="Reply to Message"
-          onClick={() => setReplyingMessage(message)}
+          onClick={onReplyMessageButtonClicked}
         >
           <ReplyIcon className="text-text w-[75%] aspect-square" />
         </BaseActionButton>
@@ -137,7 +144,7 @@ export default function MessageActions({ message }: Props) {
       </BaseActionButton>
       <BaseActionButton
         title="Reply to Message"
-        onClick={() => setReplyingMessage(message)}
+        onClick={onReplyMessageButtonClicked}
       >
         <ReplyIcon className="text-text w-[75%] aspect-square" />
       </BaseActionButton>

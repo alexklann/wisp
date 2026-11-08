@@ -40,6 +40,9 @@ interface UIState {
 
   messageActionSheetSelectedMessageId: number | null;
   setMessageActionSheetSelectedMessageId: (state: number | null) => void;
+
+  currentMessageContext: number;
+  setCurrentMessageContext: (state: number) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -91,4 +94,8 @@ export const useUIStore = create<UIState>((set) => ({
   messageActionSheetSelectedMessageId: null,
   setMessageActionSheetSelectedMessageId: (state) =>
     set({ messageActionSheetSelectedMessageId: state }),
+
+  currentMessageContext: 0,
+  setCurrentMessageContext: (state) =>
+    set({ currentMessageContext: state })
 }));

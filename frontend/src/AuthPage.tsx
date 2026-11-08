@@ -16,19 +16,16 @@ export default function AuthPage() {
     const usernameInput = formData.get("username");
     const passwordInput = formData.get("password");
 
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/auth/login/`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: usernameInput,
-          password: passwordInput,
-        }),
+    const response = await fetch("/api/auth/login/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({
+        username: usernameInput,
+        password: passwordInput,
+      }),
+    });
 
     if (response.ok) {
       const responseBody = await response.json();
@@ -58,20 +55,17 @@ export default function AuthPage() {
     const usernameInput = formData.get("username");
     const passwordInput = formData.get("password");
 
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/auth/register/`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: usernameInput,
-          display_name: usernameInput,
-          password: passwordInput,
-        }),
+    const response = await fetch("/api/auth/register/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({
+        username: usernameInput,
+        display_name: usernameInput,
+        password: passwordInput,
+      }),
+    });
 
     if (response.ok) {
       const responseBody = await response.json();

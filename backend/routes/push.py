@@ -1,10 +1,7 @@
 import json
-import os
-from pathlib import Path
 from uuid import uuid4
 
 import httpx
-from dotenv import load_dotenv
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio.session import AsyncSession
@@ -16,23 +13,11 @@ from webpush import WebPush, WebPushSubscription
 from database import get_session
 from models import PushSubscription, ServerMember
 from routes.auth import get_current_user_id
-from functools import lru_cache
 
 from core.connection_manager import get_connection_manager
-
-load_dotenv()
+from core.vapid import get_webpush_client, get_public_key_b64
 
 router = APIRouter()
-
-
-@lru_cache()
-def get_webpush_client() -> WebPush:
-    return WebPush(
-        public_key=Path("./vapid_public.pem"),
-        private_key=Path("./vapid_private.pem"),
-        subscriber=os.getenv("VAPID_CLAIM_SUB", "admin@example.com"),
-        ttl=600,
-    )
 
 
 class SubscriptionKeys(BaseModel):
@@ -86,7 +71,7 @@ async def post_push_unsubscribe(
 
 @router.get("/key")
 async def get_public_vapid_key():
-    return {"publicKey": os.getenv("VAPID_PUBLIC_KEY")}
+    return {"publicKey": get_public_key_b64()}
 
 
 @router.post("/test")

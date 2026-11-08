@@ -7,10 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "tauri:dev": "bunx tauri dev",
-    "tauri:build": "bunx tauri build",
-    "tauri:build-prod": "bunx tauri build --config ./src-tauri/tauri.conf.prod.json"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@emoji-mart/data": "^1.2.1",
@@ -36,7 +33,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@tauri-apps/cli": "^2.11.5",
     "@types/node": "^24.12.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

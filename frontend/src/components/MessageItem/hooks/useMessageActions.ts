@@ -20,24 +20,23 @@ export function useMessageActions() {
     (state) => state.setReplyingMessageHasAttachment,
   );
 
-  const updateMessageContext = useChatStore((state) => state.updateMessageContext);
+  const updateMessageContext = useChatStore(
+    (state) => state.updateMessageContext,
+  );
 
   const deleteMessageStorage = useChatStore((state) => state.deleteMessage);
 
   async function pinMessage(message: Message) {
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/messages/${message.id}/pin/`,
-      {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          status: !message.is_pinned,
-        }),
+    const response = await fetch(`/api/messages/${message.id}/pin/`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({
+        status: !message.is_pinned,
+      }),
+    });
 
     if (response.ok) {
       showGenericToast({
@@ -57,15 +56,12 @@ export function useMessageActions() {
   }
 
   async function deleteMessage({ messageId }: { messageId: number }) {
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/messages/${messageId}/`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    const response = await fetch(`/api/messages/${messageId}/`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
-    );
+    });
 
     if (response.ok) {
       deleteMessageStorage(messageId);
@@ -84,19 +80,16 @@ export function useMessageActions() {
     messageId: number;
     contextNumber: number;
   }) {
-    const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/messages/${messageId}/context/`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          context: contextNumber,
-        }),
+    const response = await fetch(`/api/messages/${messageId}/context/`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-    );
+      body: JSON.stringify({
+        context: contextNumber,
+      }),
+    });
 
     if (response.ok) {
       updateMessageContext(messageId, contextNumber);
