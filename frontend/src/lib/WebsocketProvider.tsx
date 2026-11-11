@@ -12,6 +12,7 @@ import type Message from "../types/message";
 import { useChatStore } from "../stores/useChatStore";
 import NotificationSound from "../notification.mp3";
 import useSound from "use-sound";
+import { useUIStore } from "../stores/useUIStore";
 
 export function WebsocketProvider({ children }: { children: ReactNode }) {
   const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -26,6 +27,10 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
   const editMessage = useChatStore((state) => state.editMessage);
   const updateMessageContext = useChatStore(
     (state) => state.updateMessageContext,
+  );
+
+  const setHasUnreadMessages = useUIStore(
+    (state) => state.setHasUnreadMessages,
   );
 
   const attempts = useRef(0);
@@ -111,6 +116,7 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
 
             if (!document.hasFocus() && messageData.sender_id !== user?.id) {
               playNotification();
+              setHasUnreadMessages(true);
               Notification.requestPermission().then((perm: string) => {
                 if (perm === "granted") {
                   const notification = new Notification(
@@ -172,6 +178,8 @@ export function WebsocketProvider({ children }: { children: ReactNode }) {
 
     const resume = () => {
       if (document.visibilityState !== "visible") return;
+
+      setHasUnreadMessages(false);
 
       const ws = wsRef.current;
       if (ws && ws.readyState !== WebSocket.CLOSED) return;

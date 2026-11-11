@@ -43,6 +43,9 @@ interface UIState {
 
   currentMessageContext: number;
   setCurrentMessageContext: (state: number) => void;
+
+  hasUnreadMessages: boolean;
+  setHasUnreadMessages: (state: boolean) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -96,6 +99,8 @@ export const useUIStore = create<UIState>((set) => ({
     set({ messageActionSheetSelectedMessageId: state }),
 
   currentMessageContext: 0,
-  setCurrentMessageContext: (state) =>
-    set({ currentMessageContext: state })
+  setCurrentMessageContext: (state) => set({ currentMessageContext: state }),
+
+  hasUnreadMessages: false,
+  setHasUnreadMessages: (state) => set({ hasUnreadMessages: state }),
 }));

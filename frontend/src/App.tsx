@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import MemberSidebar from "./components/MemberSidebar";
 import { Toaster } from "react-hot-toast";
 import { useStaleBuild } from "./lib/useStaleBuild";
+import { useFavicon } from "./hooks/useFavicon";
 
 /**
  * AI-Generated with DeepSeek-v4 Flash
@@ -41,6 +42,8 @@ function UpdateBanner({ live }: { live: string | null }) {
 }
 
 export default function App() {
+  useFavicon();
+
   const liveBuild = useStaleBuild();
   const token = useAuthStore((state) => state.token);
   const renderedPage = useUIStore((state) => state.renderedPage);

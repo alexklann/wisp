@@ -25,11 +25,16 @@ export function useStaleBuild() {
         });
         if (!res.ok) return;
         const id = (await res.text()).trim();
-        setLive(id === __BUILD_ID__ ? null : id);
+        if (id !== __BUILD_ID__) {
+          setLive(id);
+          window.location.reload();
+          return;
+        }
       } catch {}
     };
 
     const onVisible = () => void check();
+
     const onPageShow = (e: PageTransitionEvent) => {
       if (e.persisted) void check(true);
     };
