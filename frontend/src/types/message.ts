@@ -15,6 +15,7 @@ export default interface Message {
   created_at: number;
   attachments: Attachment[];
   replied_message?: RepliedMessagePreview;
+  data: Record<string, unknown> | null;
 }
 
 export interface Attachment {

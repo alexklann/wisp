@@ -40,7 +40,11 @@ export default function MessageAttachments({
               setSelectedImageFilename(attachment.id);
             }}
             className="max-w-[40%] md:max-w-32 cursor-pointer rounded-lg"
-            src={`${attachment.url.split(".webp")[0]}_thumb.webp`}
+            src={
+              attachment.url.endsWith(".webp")
+                ? `${attachment.url.split(".webp")[0]}_thumb.webp`
+                : attachment.url
+            }
           />
         ) : attachment.file_type.startsWith("audio/") ? (
           <AudioAttachment

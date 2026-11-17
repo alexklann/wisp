@@ -104,6 +104,7 @@ async def get_messages_pinned(
                 created_at=db_message.created_at,
                 attachments=[],
                 replied_message=reply_data,
+                data=db_message.data,
             )
         )
 
@@ -237,6 +238,7 @@ async def get_messages(
                 created_at=db_message.created_at,
                 attachments=[],
                 replied_message=reply_data,
+                data=db_message.data,
             )
         )
 

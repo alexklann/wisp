@@ -3,6 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel, field_serializer
 from sqlalchemy import Index, text
+from typing import Any
+from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -101,6 +103,8 @@ class Message(SQLModel, table=True):
 
     is_pinned: bool = Field(default=False)
 
+    data: Optional[dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
+
     attachments: list[Attachment] = Relationship(back_populates="message")
     replied_message: Optional["Message"] = Relationship(
         sa_relationship_kwargs={"remote_side": "Message.id"}
@@ -147,6 +151,7 @@ class ChatMessageResponse(BaseModel):
     created_at: datetime
     attachments: list[AttachmentResponse] = Field(default=[])
     replied_message: Optional[RepliedMessagePreview] = Field(default=None)
+    data: Optional[dict[str, Any]] = Field(default=None)
 
     @field_serializer("created_at", "edited_at")
     def _as_utc(self, v: datetime | None, _info):

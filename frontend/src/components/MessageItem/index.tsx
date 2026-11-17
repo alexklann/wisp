@@ -50,14 +50,15 @@ export default function MessageItem({
       />
       <div className="flex flex-col ml-12">
         <MessageReply messagePreview={message.replied_message} />
-        <MessageContent
-          messageId={message.id}
-          messageContent={message.content}
-          messageContext={message.context}
+        <MessageContent message={message} />
+        <MessageAttachments
+          messageAttachments={message.attachments}
+          messageContext={message.context ?? 0}
         />
-        <MessageAttachments messageAttachments={message.attachments} messageContext={message.context ?? 0}/>
-        {message.context !== 0 && message.context !== null  && (
-          <span className="absolute bottom-0 right-0 px-2 py-1 text-text/20 text-xs">{message.context ?? 0}</span>
+        {message.context !== 0 && message.context !== null && (
+          <span className="absolute bottom-0 right-0 px-2 py-1 text-text/20 text-xs">
+            {message.context ?? 0}
+          </span>
         )}
       </div>
     </div>
