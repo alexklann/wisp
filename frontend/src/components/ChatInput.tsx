@@ -13,6 +13,7 @@ import { chatFocus } from "../lib/chatFocus";
 import { ReactEditor } from "slate-react";
 import PlusIcon from "../icons/PlusIcon";
 import PaperclipIcon from "../icons/PaperclipIcon";
+import { useClickOutside } from "../hooks/useClickOutside";
 
 const EMOJI_LIST = [
   "😀",
@@ -89,8 +90,11 @@ export default function ChatInput({
   const pickerRef = useRef<HTMLDivElement>(null);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
 
-  const contextListRef = useRef<HTMLDivElement>(null);
-  const plusButtonRef = useRef<HTMLButtonElement>(null);
+  const contextMenuRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(contextMenuRef, showContextList, () =>
+    setShowContextList(false),
+  );
 
   const lastSelectionRef = useRef(editor.selection);
 
@@ -118,27 +122,6 @@ export default function ChatInput({
       document.removeEventListener("mousedown", handleMouseDown);
     };
   }, [showEmojiPicker]);
-
-  useEffect(() => {
-    if (!showContextList) return;
-
-    const handleMouseDown = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (contextListRef.current?.contains(target)) return;
-      if (plusButtonRef.current?.contains(target)) return;
-
-      setShowContextList(false);
-    };
-
-    const rafId = requestAnimationFrame(() => {
-      document.addEventListener("mousedown", handleMouseDown);
-    });
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      document.removeEventListener("mousedown", handleMouseDown);
-    };
-  }, [showContextList]);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -254,27 +237,29 @@ export default function ChatInput({
             sendMessage={sendMessage}
           />
           <div className="flex flex-row gap-2 w-full">
-            {showContextList && (
-              <div className="absolute bottom-0 left-0 w-fit h-fit bg-surface-base border border-stroke rounded-md p-1 -translate-y-10 translate-x-2">
-                <button
-                  onClick={() => {
-                    openFilePicker();
-                    setShowContextList(false);
-                  }}
-                  className="flex flex-row items-center gap-2 hover:bg-white/5 w-full cursor-pointer rounded-md py-1 px-2"
-                >
-                  <PaperclipIcon className="h-6 w-6" />
-                  <span>Upload File</span>
-                </button>
-              </div>
-            )}
-            <button
-              title="More"
-              className="flex items-center justify-center h-8 aspect-square hover:bg-white/5 rounded-lg cursor-pointer"
-              onClick={() => setShowContextList((v) => !v)}
-            >
-              <PlusIcon className="text-white w-5 aspect-square" />
-            </button>
+            <div ref={contextMenuRef} className="relative shrink-0 h-8">
+              {showContextList && (
+                <div className="absolute bottom-full mb-1 left-0 w-max h-fit bg-surface-base border border-stroke rounded-md p-1">
+                  <button
+                    onClick={() => {
+                      openFilePicker();
+                      setShowContextList(false);
+                    }}
+                    className="flex flex-row items-center gap-2 hover:bg-white/5 w-full cursor-pointer rounded-md py-1 px-2"
+                  >
+                    <PaperclipIcon className="h-6 w-6" />
+                    <span>Upload File</span>
+                  </button>
+                </div>
+              )}
+              <button
+                title="More"
+                className="flex items-center justify-center h-8 aspect-square hover:bg-white/5 rounded-lg cursor-pointer"
+                onClick={() => setShowContextList((v) => !v)}
+              >
+                <PlusIcon className="text-white w-5 aspect-square" />
+              </button>
+            </div>
             {currentMessageContext > 0 && (
               <span className="hidden md:block h-fit text-xs text-text/50">
                 {currentMessageContext}
