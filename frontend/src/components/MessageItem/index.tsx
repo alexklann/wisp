@@ -45,7 +45,6 @@ export default function MessageItem({
         avatarUrl={message.sender_avatar_url}
         displayName={message.sender_display_name}
         createdAt={message.created_at}
-        editedAt={message.edited_at}
         isConsecutive={isConsecutive}
       />
       <div className="flex flex-col ml-12">

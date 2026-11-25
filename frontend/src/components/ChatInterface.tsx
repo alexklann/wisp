@@ -68,7 +68,7 @@ function FullscreenImage() {
     return (
       <div
         onClick={() => setSelectedImageURL(null)}
-        className="flex justify-center items-center fixed inset-0 z-90 bg-black/70 p-12"
+        className="fixed inset-0 z-90 bg-black/70 p-12"
       >
         <div
           onClick={(event) => event.stopPropagation()}
@@ -100,7 +100,17 @@ function FullscreenImage() {
         </div>
         <img
           onClick={(event) => event.stopPropagation()}
-          className="max-w-full max-h-full object-contain select-none"
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "auto",
+            height: "auto",
+            maxWidth: "90vw",
+            maxHeight: "90vh",
+          }}
+          className="object-contain select-none"
           src={selectedImageURL}
         />
       </div>
@@ -303,6 +313,7 @@ export default function ChatInterface() {
             minOverscanItemCount={20}
             computeItemKey={(_index, message) => message.id}
             followOutput="auto"
+            atBottomThreshold={200}
             initialTopMostItemIndex={
               messages.length > 0
                 ? { index: firstItemIndex + messages.length - 1, align: "end" }

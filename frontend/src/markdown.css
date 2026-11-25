@@ -21,6 +21,14 @@ p:last-child {
   margin-bottom: 0;
 }
 
+.edited-indicator {
+    display: none;
+}
+
+.message-body > p:last-child > .edited-indicator {
+    display: inline;
+}
+
 blockquote {
     background-color: #242424;
     border-left: 4px solid #484848;

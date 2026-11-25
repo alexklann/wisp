@@ -33,7 +33,7 @@ function TimerDisplay({ end }: { end: number }) {
     <div className="flex items-center justify-center w-32 bg-surface border border-stroke p-2 rounded-md">
       <span
         title={formatTimestamp(end)}
-        className="font-bold text-xl select-none"
+        className={`font-bold text-xl select-none ${total > 0 && "cursor-progress"}`}
       >{`${pad(h)}:${pad(m)}:${pad(s)}`}</span>
     </div>
   );
@@ -63,40 +63,57 @@ export default function MessageContent({ message }: { message: Message }) {
         borderColor: `color-mix(in srgb, ${MESSAGE_CONTEXT_COLORS[message.context ?? 0]} 50%, transparent)`,
       }}
     >
-      <Markdown
-        rehypePlugins={[
-          [rehypeExternalLinks, { target: "_blank", rel: ["noreferrer"] }],
-        ]}
-        remarkPlugins={[remarkGfm, remarkBreaks]}
-        components={{
-          code(props) {
-            const { children, className, node, ...rest } = props;
-            const match = /language-(\w+)/.exec(className || "");
-            return match ? (
-              <SyntaxHighlighter
-                PreTag="div"
-                children={String(children).replace(/\n$/, "")}
-                language={match[1]}
-                style={dark}
-                customStyle={{
-                  margin: 0,
-                  padding: 0,
-                  background: "transparent",
-                  border: 0,
-                  boxShadow: "none",
-                  textShadow: "none",
-                }}
-              />
-            ) : (
-              <code {...rest} className={className}>
-                {children}
-              </code>
-            );
-          },
-        }}
-      >
-        {message.content}
-      </Markdown>
+      <div className="message-body">
+        <Markdown
+          rehypePlugins={[
+            [rehypeExternalLinks, { target: "_blank", rel: ["noreferrer"] }],
+          ]}
+          remarkPlugins={[remarkGfm, remarkBreaks]}
+          components={{
+            code(props) {
+              const { children, className, node, ...rest } = props;
+              const match = /language-(\w+)/.exec(className || "");
+              return match ? (
+                <SyntaxHighlighter
+                  PreTag="div"
+                  children={String(children).replace(/\n$/, "")}
+                  language={match[1]}
+                  style={dark}
+                  customStyle={{
+                    margin: 0,
+                    padding: 0,
+                    background: "transparent",
+                    border: 0,
+                    boxShadow: "none",
+                    textShadow: "none",
+                  }}
+                />
+              ) : (
+                <code {...rest} className={className}>
+                  {children}
+                </code>
+              );
+            },
+            p({ children, ...props }) {
+              return (
+                <p {...props}>
+                  {children}
+                  {message.edited_at && (
+                    <span
+                      className="edited-indicator text-text/50 text-xs ml-1"
+                      title={`Edited: ${new Date(message.edited_at).toLocaleString()}`}
+                    >
+                      (edited)
+                    </span>
+                  )}
+                </p>
+              );
+            },
+          }}
+        >
+          {message.content}
+        </Markdown>
+      </div>
 
       {message.message_type === "timer" && isTimerData(message.data) && (
         <TimerDisplay end={message.data.end} />

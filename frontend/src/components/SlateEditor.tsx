@@ -169,7 +169,7 @@ export default function SlateEditor({
   };
 
   return (
-    <div className="flex flex-row items-center gap-2 w-full max-h-48 overflow-y-auto">
+    <div className="flex flex-row items-center gap-2 w-full max-h-48 overflow-y-auto px-2">
       <div className="flex-1 min-w-0">
         <Slate
           editor={editor}

@@ -4,7 +4,6 @@ interface Props {
   avatarUrl: string | null;
   displayName: string;
   createdAt: number;
-  editedAt: number;
   isConsecutive: boolean;
 }
 
@@ -44,7 +43,6 @@ export default function MessageHeader({
   avatarUrl,
   displayName,
   createdAt,
-  editedAt,
   isConsecutive,
 }: Props) {
   if (isConsecutive) return;
@@ -55,14 +53,12 @@ export default function MessageHeader({
         <MessageAvatar avatarUrl={avatarUrl} />
         <div className="flex flex-col items-baseline">
           <span className="font-bold">{displayName}</span>
-          <div className="flex flex-row gap-1 text-text/50 text-xs">
-            <span title={new Date(createdAt).toLocaleString()}>
-              {formatTimestamp(createdAt)}
-            </span>
-            {editedAt !== null && (
-              <span title={new Date(editedAt).toLocaleString()}>(edited)</span>
-            )}
-          </div>
+          <span
+            className="text-text/50 text-xs"
+            title={new Date(createdAt).toLocaleString()}
+          >
+            {formatTimestamp(createdAt)}
+          </span>
         </div>
       </div>
     </div>
