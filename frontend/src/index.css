@@ -67,6 +67,16 @@
     }
 }
 
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  overscroll-behavior-y: none;
+}
 
 dialog.action-sheet {
   transform: translateY(0);
