@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageOps, UnidentifiedImageError
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from database import get_session
@@ -123,8 +123,8 @@ def _process_and_save_image(
 ) -> tuple[int, int]:
     try:
         with Image.open(io.BytesIO(image_bytes)) as img:
-            # WebP supports "RGB", "RGBA", "L" (grayscale), "P" (palette).
-            # Convert palette and CMYK to RGBA for safety.
+            img = ImageOps.exif_transpose(img)
+
             if img.mode == "CMYK":
                 rgb = img.convert("RGB")
             elif img.mode not in ("RGB", "RGBA", "L", "P"):
@@ -132,11 +132,9 @@ def _process_and_save_image(
             else:
                 rgb = img
 
-            # ── Save full-size WebP ───────────────────────────────────────
             rgb.save(output_path, "webp", quality=85, method=6)
             file_size = output_path.stat().st_size
 
-            # ── Generate thumbnail ────────────────────────────────────────
             thumb = rgb.copy()
             thumb.thumbnail((320, 320))  # Thumbnail size
             thumb.save(thumb_path, "webp", quality=85, method=6)

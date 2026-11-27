@@ -20,7 +20,7 @@ export default function ColorList({
   return (
     <div className="flex flex-row gap-1 absolute bottom-full mb-1 left-0 w-max h-fit bg-surface-base border border-stroke rounded-md p-1">
       <button
-        title="Change Context"
+        title="No Context"
         className="flex items-center justify-center h-8 aspect-square hover:bg-white/5 rounded-lg cursor-pointer p-2"
         onClick={() => {
           setCurrentMessageContext(0);
@@ -33,7 +33,7 @@ export default function ColorList({
         ></div>
       </button>
       <button
-        title="Change Context"
+        title="Context 1"
         className="flex items-center justify-center h-8 aspect-square hover:bg-white/5 rounded-lg cursor-pointer p-2"
         onClick={() => {
           setCurrentMessageContext(1);
@@ -46,7 +46,7 @@ export default function ColorList({
         ></div>
       </button>
       <button
-        title="Change Context"
+        title="Context 2"
         className="flex items-center justify-center h-8 aspect-square hover:bg-white/5 rounded-lg cursor-pointer p-2"
         onClick={() => {
           setCurrentMessageContext(2);
@@ -59,7 +59,7 @@ export default function ColorList({
         ></div>
       </button>
       <button
-        title="Change Context"
+        title="Context 3"
         className="flex items-center justify-center h-8 aspect-square hover:bg-white/5 rounded-lg cursor-pointer p-2"
         onClick={() => {
           setCurrentMessageContext(3);

@@ -45,7 +45,7 @@ export default function MessageActions({ message }: Props) {
   // Message DOES NOT belong to user
   if (!user || message.sender_id != user.id) {
     return (
-      <div className="flex-row gap-1 absolute top-0 right-0 hidden group-hover:flex -translate-y-5 -translate-x-2">
+      <div className="flex-row gap-1 absolute -top-5 right-2 hidden group-hover:flex">
         <BaseActionButton
           title={`${isMessagePinned ? "Unpin Message" : "Pin Message"}`}
           onClick={async () => {
@@ -67,9 +67,9 @@ export default function MessageActions({ message }: Props) {
 
   // Message DOES belong to user
   return (
-    <div className="flex-row gap-1 absolute top-0 right-0 hidden group-hover:flex -translate-y-5 -translate-x-2">
+    <div className="flex-row gap-1 absolute -top-5 right-2 hidden group-hover:flex">
       <div
-        className="flex items-center justify-center h-10 aspect-square bg-surface-base hover:bg-surface border border-stroke rounded-lg justify-start px-2 gap-2 flex w-full"
+        className="flex items-center justify-center h-10 bg-surface-base hover:bg-surface border border-stroke rounded-lg px-2 gap-2"
         title="Change Context"
         onClick={(e) => e.stopPropagation()}
       >

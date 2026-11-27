@@ -393,20 +393,22 @@ export default function ChatInterface() {
           )}
         </div>
 
-        <button
-          onClick={scrollToBottom}
-          inert={isAtBottom}
-          className={twMerge(
-            "transition-all ease-in-out duration-200 absolute bottom-0 left-[50%] -translate-x-1/2 mb-20 cursor-pointer bg-surface-base hover:bg-surface border border-stroke w-[80%] md:w-[50%] py-1 rounded-md z-10",
-            isAtBottom
-              ? "opacity-0 pointer-events-none translate-y-2"
-              : "opacity-100 pointer-events-auto translate-y-0",
-          )}
-        >
-          Back to bottom
-        </button>
+        <div className="relative">
+          <button
+            onClick={scrollToBottom}
+            inert={isAtBottom}
+            className={twMerge(
+              "transition-all ease-in-out duration-200 absolute bottom-full left-[50%] -translate-x-1/2 mb-2 cursor-pointer bg-surface-base hover:bg-surface border border-stroke w-[80%] md:w-[50%] py-1 rounded-md z-10",
+              isAtBottom
+                ? "opacity-0 pointer-events-none translate-y-2"
+                : "opacity-100 pointer-events-auto translate-y-0",
+            )}
+          >
+            Back to bottom
+          </button>
 
-        <ChatInput chatInputHook={chatInputHook} />
+          <ChatInput chatInputHook={chatInputHook} />
+        </div>
       </main>
     </>
   );
