@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { execSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
+import path from "node:path";
 
 function readBuildId() {
   try {
@@ -35,6 +36,11 @@ export default defineConfig(() => {
         "/api": "http://localhost:8000",
         "/ws": { target: "ws://localhost:8000", ws: true },
         "/uploads": "http://localhost:8000",
+      },
+    },
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "src"),
       },
     },
   };

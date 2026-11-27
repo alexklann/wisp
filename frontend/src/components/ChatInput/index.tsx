@@ -1,19 +1,20 @@
 import { useCallback, useState, useEffect, useRef } from "react";
 import { useDropzone } from "react-dropzone";
-import SlateEditor from "./SlateEditor";
-import AttachmentDrawer from "./AttachmentDrawer";
-import { useChatInput } from "../hooks/useChatInput";
-import { useUIStore } from "../stores/useUIStore";
+import SlateEditor from "../SlateEditor";
+import AttachmentDrawer from "../AttachmentDrawer";
+import { useChatInput } from "@/hooks/useChatInput";
+import { useUIStore } from "@/stores/useUIStore";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 import { Editor, Transforms } from "slate";
-import PaperplaneIcon from "../icons/PaperplaneIcon";
-import MESSAGE_CONTEXT_COLORS from "../lib/contextColors";
-import { chatFocus } from "../lib/chatFocus";
+import PaperplaneIcon from "@/icons/PaperplaneIcon";
+import MESSAGE_CONTEXT_COLORS from "@/lib/contextColors";
+import { chatFocus } from "@/lib/chatFocus";
 import { ReactEditor } from "slate-react";
-import PlusIcon from "../icons/PlusIcon";
-import PaperclipIcon from "../icons/PaperclipIcon";
-import { useClickOutside } from "../hooks/useClickOutside";
+import PlusIcon from "@/icons/PlusIcon";
+import { useClickOutside } from "@/hooks/useClickOutside";
+import ContextList from "./components/ContextList";
+import ColorList from "./components/ColorList";
 
 const EMOJI_LIST = [
   "😀",
@@ -53,6 +54,7 @@ export default function ChatInput({
 
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
   const [emojiButtonIndex, setEmojiButtonIndex] = useState<number>(0);
+  const [showColorList, setShowColorList] = useState<boolean>(false);
   const [showContextList, setShowContextList] = useState<boolean>(false);
 
   const setReplyingMessageId = useUIStore(
@@ -90,8 +92,10 @@ export default function ChatInput({
   const pickerRef = useRef<HTMLDivElement>(null);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
 
-  const contextMenuRef = useRef<HTMLDivElement>(null);
+  const colorMenuRef = useRef<HTMLDivElement>(null);
+  useClickOutside(colorMenuRef, showColorList, () => setShowColorList(false));
 
+  const contextMenuRef = useRef<HTMLDivElement>(null);
   useClickOutside(contextMenuRef, showContextList, () =>
     setShowContextList(false),
   );
@@ -236,22 +240,13 @@ export default function ChatInput({
             isUploading={isUploading}
             sendMessage={sendMessage}
           />
-          <div className="flex flex-row gap-2 w-full">
+          <div className="flex flex-row gap-1 w-full">
             <div ref={contextMenuRef} className="relative shrink-0 h-8">
-              {showContextList && (
-                <div className="absolute bottom-full mb-1 left-0 w-max h-fit bg-surface-base border border-stroke rounded-md p-1">
-                  <button
-                    onClick={() => {
-                      openFilePicker();
-                      setShowContextList(false);
-                    }}
-                    className="flex flex-row items-center gap-2 hover:bg-white/5 w-full cursor-pointer rounded-md py-1 px-2"
-                  >
-                    <PaperclipIcon className="h-6 w-6" />
-                    <span>Upload File</span>
-                  </button>
-                </div>
-              )}
+              <ContextList
+                openFilePicker={openFilePicker}
+                showContextList={showContextList}
+                setShowContextList={setShowContextList}
+              />
               <button
                 title="More"
                 className="flex items-center justify-center h-8 aspect-square hover:bg-white/5 rounded-lg cursor-pointer"
@@ -260,11 +255,25 @@ export default function ChatInput({
                 <PlusIcon className="text-white w-5 aspect-square" />
               </button>
             </div>
-            {currentMessageContext > 0 && (
-              <span className="hidden md:block h-fit text-xs text-text/50">
-                {currentMessageContext}
-              </span>
-            )}
+            <div ref={colorMenuRef} className="relative shrink-0 h-8">
+              <ColorList
+                showColorList={showColorList}
+                setShowColorList={setShowColorList}
+              />
+              <button
+                title="Change Context"
+                className="flex items-center justify-center h-8 aspect-square hover:bg-white/5 rounded-lg cursor-pointer p-2"
+                onClick={() => setShowColorList((v) => !v)}
+              >
+                <div
+                  className="w-full h-full border-2 border-stroke rounded-full"
+                  style={{
+                    backgroundColor:
+                      MESSAGE_CONTEXT_COLORS[currentMessageContext],
+                  }}
+                ></div>
+              </button>
+            </div>
             <div className="flex flex-row gap-2 ml-auto">
               <button
                 ref={emojiButtonRef}

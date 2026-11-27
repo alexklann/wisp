@@ -31,6 +31,16 @@ export default function MessageItem({
     (state) => state.setMessageActionSheetSelectedMessageId,
   );
 
+  const setCurrentMessageContext = useUIStore(
+    (state) => state.setCurrentMessageContext,
+  );
+
+  const onMessageClick = () => {
+    if ("virtualKeyboard" in navigator) {
+      setCurrentMessageContext(message.context ?? 0);
+    }
+  };
+
   return (
     <div
       {...(showActions ? longPress : {})}
@@ -39,6 +49,7 @@ export default function MessageItem({
         isConsecutive ? "py-0" : "py-0.5",
         messageActionSheetSelectedMessageId === message.id ? "bg-surface" : "",
       )}
+      onClick={onMessageClick}
     >
       {showActions && <MessageActions message={message} />}
       <MessageHeader
